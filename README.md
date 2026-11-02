@@ -7,10 +7,11 @@ A plugin collection plus a small core for a persistent companion agent on DeepSe
 
 - `packages/dsh-life-core` — 插件契约（manifest / loader / registry / surfaces / tools）、
   `node:sqlite` 存储、记忆与向量层、睡眠与醒来节奏、三种模型协议（含流式解码）。
-- `packages/dsh-life-*` — 插件：qq（45 个工具）、room、memory、time、web、hand、draw、image-pool。
+- `packages/dsh-life-*` — 插件：qq（45 个工具）、room、memory、time、web、hand、draw、image-pool，合计 73 个工具。
 - `examples/minimal-host` — 最小宿主 + 假 OneBot + 假模型，零 key、零外网跑通一轮闭环。
-- `docs/` — 8 篇模板文档：先跑起来、宿主怎么写、插件接口、整体结构、记忆与向量、模型协议、
-  协议端接入、安全边界、常见问题（阅读顺序见下方「文档从哪读起」）。
+- `docs/` — 11 篇模板文档：先跑起来、宿主怎么写、插件接口、整体结构、记忆与向量、模型协议、
+  协议端接入、安全边界、常见问题、测试报告、配置（阅读顺序见下方「文档从哪读起」）。
+- `tests/report.mjs` — 离线测量脚本：召回、打分、缓存口径、token 估算，零网络零密钥。
 
 ## 文档从哪读起
 
