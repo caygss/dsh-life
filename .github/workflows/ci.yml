@@ -1,0 +1,31 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: syntax (every .mjs)
+        run: |
+          set -euo pipefail
+          find . -name '*.mjs' -not -path './node_modules/*' -print0 | xargs -0 -n1 node --check
+      - name: example end-to-end
+        run: |
+          set -uo pipefail
+          node examples/minimal-host/start.mjs > out.txt 2>&1
+          code=$?
+          echo "node exit=$code"
+          cat out.txt
+          if [ "$code" -ne 0 ]; then echo "example exited $code"; exit 1; fi
+          grep -q 'ws push message' out.txt
+          grep -q 'set_online_status' out.txt
+          grep -q '心声（不发送）：其实有点紧张' out.txt
+          grep -q '发出 2 条' out.txt

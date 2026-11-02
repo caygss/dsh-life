@@ -1,0 +1,51 @@
+{
+  "id": "life-memory",
+  "apiVersion": 1,
+  "version": "1.2.0",
+  "kinds": [
+    "memory"
+  ],
+  "platforms": [
+    "any"
+  ],
+  "capabilities": [
+    {
+      "name": "memory",
+      "surface": "memory"
+    },
+    {
+      "name": "memory_note",
+      "surface": "tool"
+    },
+    {
+      "name": "memory_recall",
+      "surface": "tool"
+    },
+    {
+      "name": "memory_unpack",
+      "surface": "tool"
+    },
+    {
+      "name": "memory_revise",
+      "surface": "tool"
+    },
+    {
+      "name": "memory_withdraw",
+      "surface": "tool"
+    },
+    {
+      "name": "memory_prefer",
+      "surface": "tool"
+    }
+  ],
+  "config": {
+    "noteMaxChars": 1000,
+    "reviseMaxChars": 500,
+    "reasonMaxChars": 200,
+    "recallDefaultLimit": 8,
+    "recallMaxLimit": 20,
+    "unpackDefaultChars": 1500,
+    "unpackMaxChars": 6000,
+    "prefMaxChars": 200
+  }
+}

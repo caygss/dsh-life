@@ -1,0 +1,51 @@
+{
+  "promptPath": "./prompts/system.md",
+  "dataDir": "./data",
+  "plugins": [
+    "life-time",
+    "life-hand",
+    "life-qq"
+  ],
+  "inbound": {
+    "channel": "qq_recv"
+  },
+  "outbound": "qq_send",
+  "model": {
+    "protocol": "chat",
+    "baseUrl": "http://127.0.0.1:18088/v1",
+    "modelId": "fake-chat",
+    "maxTokens": 512,
+    "apiKeyEnv": "MODEL_API_KEY"
+  },
+  "turn": {
+    "maxRounds": 3
+  },
+  "pluginsConfig": {
+    "life-qq": {
+      "endpoint": "http://127.0.0.1:18020",
+      "wsEndpoint": "ws://127.0.0.1:18021",
+      "recipients": {
+        "mode": "list",
+        "ids": [
+          "10001"
+        ],
+        "blacklist": [],
+        "primary": "10001"
+      },
+      "groups": {
+        "mode": "list",
+        "ids": []
+      },
+      "inboundAllow": [
+        "10001"
+      ],
+      "asrEndpoint": "",
+      "voiceEndpoint": "",
+      "stickerEnabled": false,
+      "qzonePost": false
+    },
+    "life-time": {
+      "timeZone": "UTC"
+    }
+  }
+}

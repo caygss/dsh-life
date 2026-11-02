@@ -1,0 +1,263 @@
+{
+  "id": "life-qq",
+  "apiVersion": 1,
+  "version": "2.16.1",
+  "kinds": [
+    "channel"
+  ],
+  "platforms": [
+    "any"
+  ],
+  "capabilities": [
+    {
+      "name": "qq_send",
+      "surface": "outbound"
+    },
+    {
+      "name": "qq_recv",
+      "surface": "inbound"
+    },
+    {
+      "name": "qq_send_image",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_send_voice",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_voice",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_send_file",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_recall",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_react",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_poke",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_history",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_message",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_status",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_profile",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_like",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_list",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_history",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_send_group",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_qzone_mine",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_qzone_feeds",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_qzone_detail",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_qzone_post",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_qzone_delete",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_reply",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_sticker_save",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_sticker_send",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_sticker_list",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_sticker_rename",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_sticker_remove",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_forward_unpack",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_say",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_ban",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_ban_all",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_kick",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_admin",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_card",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_name",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_title",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_notice_post",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_notice_read",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_members",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_info",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_files",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_file_upload",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_file_delete",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_essence",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_handle_request",
+      "surface": "tool"
+    },
+    {
+      "name": "qq_group_leave",
+      "surface": "tool"
+    }
+  ],
+  "config": {
+    "endpoint": "http://127.0.0.1:3000",
+    "wsEndpoint": "ws://127.0.0.1:3001",
+    "timeoutMs": 10000,
+    "timeZone": "UTC",
+    "authScheme": "Bearer",
+    "tokenPath": "",
+    "reconnectMs": 3000,
+    "maxReconnectMs": 60000,
+    "wsTokenPath": "",
+    "mediaMaxBytes": 8388608,
+    "recipients": {
+      "mode": "list",
+      "ids": [],
+      "blacklist": [],
+      "primary": ""
+    },
+    "policyJsonPath": "",
+    "policyYmlPath": "",
+    "friendCacheMs": 60000,
+    "asrEnabled": true,
+    "asrEndpoint": "",
+    "asrTimeoutMs": 15000,
+    "asrMaxBytes": 8388608,
+    "asrLang": "auto",
+    "voiceEnabled": true,
+    "voiceEndpoint": "",
+    "voiceTimeoutMs": 90000,
+    "voiceMaxChars": 240,
+    "voicePreset": "default",
+    "groups": {
+      "mode": "none",
+      "ids": []
+    },
+    "notices": true,
+    "quoteMaxChars": 200,
+    "forwardDir": "",
+    "imageMaxBytes": 20971520,
+    "imageTimeoutMs": 20000,
+    "imageDir": "/data/state/media",
+    "fileDir": "",
+    "fileTimeoutMs": 120000,
+    "qzonePost": false,
+    "qzoneUgcRight": 64,
+    "qzoneMaxChars": 1000,
+    "qzoneFeedCount": 5,
+    "stickerEnabled": true,
+    "stickerDir": "/data/state/stickers",
+    "stickerMaxBytes": 2097152,
+    "stickerInboxMax": 60,
+    "stickerInboxKeepMs": 2592000000,
+    "stickerListMax": 100,
+    "replyMaxChars": 2000,
+    "replyWindowMs": 600000,
+    "voicePresets": {
+      "default": {}
+    },
+    "voiceBody": {
+      "text": "{{text}}",
+      "preset": "{{preset}}"
+    }
+  }
+}

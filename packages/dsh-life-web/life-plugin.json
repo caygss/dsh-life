@@ -1,0 +1,39 @@
+{
+  "id": "life-web",
+  "apiVersion": 1,
+  "version": "1.1.0",
+  "kinds": [
+    "web"
+  ],
+  "platforms": [
+    "any"
+  ],
+  "capabilities": [
+    {
+      "name": "net",
+      "surface": "net"
+    },
+    {
+      "name": "web_search",
+      "surface": "tool"
+    },
+    {
+      "name": "web_fetch",
+      "surface": "tool"
+    },
+    {
+      "name": "web_image",
+      "surface": "tool"
+    }
+  ],
+  "config": {
+    "queryMaxChars": 128,
+    "countDefault": 5,
+    "countMax": 8,
+    "searchCharsMax": 4000,
+    "fetchCharsMax": 6000,
+    "imageListMax": 12,
+    "titleCharsMax": 120,
+    "summaryCharsMax": 480
+  }
+}

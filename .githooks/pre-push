@@ -1,0 +1,24 @@
+#!/bin/sh
+# 本地兜底：没有服务端分支保护时，push 前先跑和 CI 一样的两步。
+# 安装：git config core.hooksPath .githooks
+set -e
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "[pre-push] node not found on PATH; skipping checks" >&2
+  exit 0
+fi
+
+echo "[pre-push] syntax: node --check on every .mjs"
+find . -name '*.mjs' -not -path './node_modules/*' -print0 | xargs -0 -n1 node --check
+
+echo "[pre-push] example smoke"
+log="$(mktemp)"
+if ! node examples/minimal-host/start.mjs >"$log" 2>&1; then
+  cat "$log"
+  rm -f "$log"
+  echo "[pre-push] example failed" >&2
+  exit 1
+fi
+grep -q '发出 2 条' "$log" || { cat "$log"; rm -f "$log"; echo "[pre-push] example assertions failed" >&2; exit 1; }
+rm -f "$log"
+echo "[pre-push] ok"

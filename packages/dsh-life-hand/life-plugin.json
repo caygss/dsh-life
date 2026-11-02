@@ -1,0 +1,42 @@
+{
+  "id": "life-hand",
+  "apiVersion": 1,
+  "version": "1.0.1",
+  "kinds": [
+    "work"
+  ],
+  "platforms": [
+    "any"
+  ],
+  "capabilities": [
+    {
+      "name": "exec",
+      "surface": "exec"
+    },
+    {
+      "name": "run",
+      "surface": "tool"
+    },
+    {
+      "name": "read_file",
+      "surface": "tool"
+    },
+    {
+      "name": "write_file",
+      "surface": "tool"
+    },
+    {
+      "name": "list_files",
+      "surface": "tool"
+    },
+    {
+      "name": "view_image",
+      "surface": "tool"
+    }
+  ],
+  "config": {
+    "outputCharsMax": 32000,
+    "readCharsMax": 32000,
+    "listEntriesMax": 300
+  }
+}

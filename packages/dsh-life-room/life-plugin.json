@@ -1,0 +1,42 @@
+{
+  "id": "life-room",
+  "apiVersion": 1,
+  "version": "1.2.1",
+  "kinds": [
+    "room"
+  ],
+  "platforms": [
+    "any"
+  ],
+  "capabilities": [
+    {
+      "name": "room_look",
+      "surface": "tool"
+    },
+    {
+      "name": "room_read",
+      "surface": "tool"
+    },
+    {
+      "name": "room_write",
+      "surface": "tool"
+    },
+    {
+      "name": "room_mine",
+      "surface": "tool"
+    },
+    {
+      "name": "room_delete",
+      "surface": "tool"
+    },
+    {
+      "name": "room_import",
+      "surface": "tool"
+    }
+  ],
+  "config": {
+    "defaultDepth": 64,
+    "maxEntries": 100000,
+    "maxReadBytes": 67108864
+  }
+}

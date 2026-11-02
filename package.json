@@ -1,0 +1,16 @@
+{
+  "name": "dsh-life",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Plugin collection + core for a persistent, self-scheduled companion on DeepSeek Harness.",
+  "engines": {
+    "node": ">=24.22.1 <25"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "node --test \"test/**/*.test.mjs\""
+  }
+}

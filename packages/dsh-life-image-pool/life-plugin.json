@@ -1,0 +1,34 @@
+{
+  "id": "life-image-pool",
+  "apiVersion": 1,
+  "version": "1.0.0",
+  "kinds": [
+    "image"
+  ],
+  "platforms": [
+    "any"
+  ],
+  "capabilities": [
+    {
+      "name": "image_pool",
+      "surface": "image-pool"
+    },
+    {
+      "name": "image_pool_import",
+      "surface": "tool"
+    },
+    {
+      "name": "image_pool_status",
+      "surface": "tool"
+    }
+  ],
+  "requires": {
+    "plugins": [
+      "life-draw"
+    ],
+    "services": [
+      "imagePool"
+    ]
+  },
+  "config": {}
+}

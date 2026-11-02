@@ -1,0 +1,30 @@
+{
+  "id": "life-draw",
+  "apiVersion": 1,
+  "version": "1.1.0",
+  "kinds": [
+    "work"
+  ],
+  "platforms": [
+    "any"
+  ],
+  "capabilities": [
+    {
+      "name": "image",
+      "surface": "image"
+    },
+    {
+      "name": "draw_image",
+      "surface": "tool"
+    },
+    {
+      "name": "edit_image",
+      "surface": "tool"
+    }
+  ],
+  "config": {
+    "promptCharsMax": 4000,
+    "imagesMax": 4,
+    "size": "1024x1024"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "life-time",
+  "apiVersion": 1,
+  "version": "1.2.0",
+  "kinds": [
+    "time"
+  ],
+  "platforms": [
+    "any"
+  ],
+  "capabilities": [
+    {
+      "name": "schedule",
+      "surface": "schedule"
+    },
+    {
+      "name": "time_schedule",
+      "surface": "tool"
+    },
+    {
+      "name": "time_list",
+      "surface": "tool"
+    },
+    {
+      "name": "time_cancel",
+      "surface": "tool"
+    },
+    {
+      "name": "time_snooze",
+      "surface": "tool"
+    }
+  ],
+  "config": {
+    "noteMaxChars": 200,
+    "timeZone": "UTC",
+    "listDefault": 10,
+    "listMax": 30
+  }
+}
