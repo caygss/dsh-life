@@ -58,7 +58,7 @@ function base64Bytes(text) {
 }
 
 // 头像的来源：协议端跑在自己的容器里，读不到助手的
-// /data/home，set_qq_avatar 传路径一律 retcode 100；而让助手自己把 base64 抄进工具参数，
+// 屋（home），set_qq_avatar 传路径一律 retcode 100；而让助手自己把 base64 抄进工具参数，
 // 长串必串字（128px 以内才保证不出错）→ 头像只能很小、很糊。所以路径先给插件自己读：
 // 本机读得到就直接转 base64 递过去，读不到才按老口径透传（URL / 协议端那边的路径）。
 const AVATAR_MAX_BYTES = 4 * 1024 * 1024;
@@ -112,7 +112,7 @@ export function create(context) {
     token = raw.trim();
     if (token === '') throw new Error('life-qq config.tokenPath is empty');
   }
- // 协议端的 OneBot HTTP 只认 Authorization: Bearer <token>（实测 Token/裸 token 都 401）。
+ // 协议端的 OneBot HTTP 只认 Authorization: Bearer <token>；Token 前缀和裸 token 都会 401。
   const authScheme = context.config.authScheme === undefined ? 'Bearer' : String(context.config.authScheme);
   if (authScheme !== 'Bearer' && authScheme !== 'Token' && authScheme !== 'none') {
     throw new Error('life-qq config.authScheme must be Bearer, Token or none');
@@ -157,8 +157,15 @@ export function create(context) {
     ? context.config.imageMaxBytes : 20 * 1024 * 1024;
   const imageTimeoutMs = Number.isInteger(context.config.imageTimeoutMs) && context.config.imageTimeoutMs > 0
     ? context.config.imageTimeoutMs : 20000;
-  const imageDir = typeof context.config.imageDir === 'string' && context.config.imageDir.trim() !== ''
-    ? context.config.imageDir.trim() : '/data/state/media';
+ // 目录默认值：先看配置，再用宿主给的插件数据目录；两样都没有就报清楚——
+ // 不写死任何一台机器上的路径。
+  const resolveDataDir = (configured, subdir, configKey) => {
+    const declared = typeof configured === 'string' ? configured.trim() : '';
+    if (declared !== '') return declared;
+    if (typeof context.dataDir === 'string' && context.dataDir !== '') return path.join(context.dataDir, subdir);
+    throw new Error('life-qq needs ' + configKey + ' or a host dataDir');
+  };
+  const imageDir = resolveDataDir(context.config.imageDir, 'media', 'config.imageDir');
  // 图要不要塞给模型：这条路由本来就能看图。看不见的原因是
  // provider 没把这个 id 声明成 input:['text','image']（缺 MODEL_CATALOG 条目 → harness 把
  // image 块换成"只吃文字"的占位）。元数据对了就正常。所以默认**递**：
@@ -168,11 +175,12 @@ export function create(context) {
  // ---- 文件入站--------------------------------
  // 以前 file 段只变成一句“[文件] 名字 大小”，字节一个都没拿下来——助手只能诚实地说“我没收到”。
  // 现在真去下载，落进助手屋里（room_read 读得到的地方），标记里给助手一个相对路径。
- // 落点默认 <homeRoot>/inbox：助手的工具看得到，/data/state 是助手的禁区，落那儿等于“收到了打不开”。
+ // 落点默认 <homeRoot>/inbox：助手的工具看得到；插件数据目录是助手的禁区，落那儿等于“收到了打不开”。
   const fileDir = typeof context.config.fileDir === 'string' && context.config.fileDir.trim() !== ''
     ? context.config.fileDir.trim()
     : (typeof context.env.homeRoot === 'string' && context.env.homeRoot !== ''
-      ? path.join(context.env.homeRoot, 'inbox') : '/data/home/inbox');
+      ? path.join(context.env.homeRoot, 'inbox')
+      : resolveDataDir('', 'inbox', 'config.fileDir'));
  // 文件比图大得多：20 秒对几 MB 的文件不够，给 120 秒（可被 manifest / 热文件覆盖）。
   const fileTimeoutMs = Number.isInteger(context.config.fileTimeoutMs) && context.config.fileTimeoutMs > 0
     ? context.config.fileTimeoutMs : 120000;
@@ -220,10 +228,10 @@ export function create(context) {
   const IMAGE_MARK = '[图片]';
  // DSH 的附件准入只认这四种；BMP 由本插件转成 PNG，TIFF/HEIC/AVIF 只报"收到了但看不了"。
   const IMAGE_PASS = Object.freeze(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
- // ---- QQ 空间（B4）：读是安全的，发/删是对外发声，默认关着 -------------------
- // 协议端有整套 qzone 动作（实测 200）：get_qzone_msg_list /
- // get_qzone_feeds / send_qzone_msg / delete_qzone_msg。同一次探测里
- // 语音通话（voice_call / av_call）一个都没有，礼物也只在一本密码字典里出现过。
+ // ---- QQ 空间：读是安全的，发/删是对外发声，默认关着 ------------------------
+ // 协议端有整套 qzone 动作：get_qzone_msg_list /
+ // get_qzone_feeds / send_qzone_msg / delete_qzone_msg。没有语音通话
+ // （voice_call / av_call），礼物相关动作也不在它的动作表里。
   const qzonePostEnabled = context.config.qzonePost === true;
   const QZONE_UGC_RIGHTS = Object.freeze([1, 4, 16, 64, 128]);
   const qzoneDefaultRight = Number.isInteger(context.config.qzoneUgcRight) && QZONE_UGC_RIGHTS.includes(context.config.qzoneUgcRight)
@@ -233,19 +241,17 @@ export function create(context) {
   const qzoneFeedCount = Number.isInteger(context.config.qzoneFeedCount) && context.config.qzoneFeedCount > 0
     ? Math.min(context.config.qzoneFeedCount, 20) : 5;
 
- // ---- 表情包（B3，）----------------------------------------
- // 图库不是本地文件夹，而是助手 QQ 账号的「收藏表情」——协议端 协议端 有整套动作
- // ：
+ // ---- 表情包 ---------------------------------------------------------------
+  // 图库不是本地文件夹，而是助手 QQ 账号的「收藏表情」——协议端有整套动作：
  // fetch_custom_face_detail {count} -> [{emoji_id, resId, url, md5, desc}]
- // add_custom_face {file:'base64://…'} -> {emoji_id}（实测吃 base64：两个容器不用共享目录）
+ // add_custom_face {file:'base64://…'} -> {emoji_id}（吃 base64：两个容器不用共享目录）
  // modify_custom_face {emoji_id, desc} -> 改备注，就是助手给这张起的名字
  // delete_custom_face {emoji_id}
  // send_custom_face {emoji_id, user_id, reply_to} 发出去还保留"表情"样式
  // 好处：助手在 QQ 客户端里也看得见自己加的图，不用维护第二份副本、也不会两边对不上。
- // 别人发给助手的表情包先落在"收件箱"（/data/state/stickers/inbox），助手收下才进图库。
+ // 别人发给助手的表情包先落在"收件箱"（<stickerDir>/inbox），助手收下才进图库。
   const stickerEnabled = context.config.stickerEnabled !== false;
-  const stickerDir = typeof context.config.stickerDir === 'string' && context.config.stickerDir.trim() !== ''
-    ? context.config.stickerDir.trim() : '/data/state/stickers';
+  const stickerDir = resolveDataDir(context.config.stickerDir, 'stickers', 'config.stickerDir');
   const stickerMaxBytes = Number.isInteger(context.config.stickerMaxBytes) && context.config.stickerMaxBytes > 0
     ? Math.min(context.config.stickerMaxBytes, 8 * 1024 * 1024) : 2 * 1024 * 1024;
   const stickerInboxMax = Number.isInteger(context.config.stickerInboxMax) && context.config.stickerInboxMax > 0
@@ -257,8 +263,8 @@ export function create(context) {
   const STICKER_MARK = '[表情包]';
  // QQ 认这个组合：image 段带 sub_type=1 + summary='[动画表情]' 就按表情显示（协议端自己发收藏表情也这么拼）。
   const STICKER_SUMMARY = '[动画表情]';
- // ---- 引用回复（B2，）--------------------------------------
- // 协议端实测：send_private_msg 的 message 数组里放 { type:'reply', data:{ id } } 就能挂上引用，
+ // ---- 引用回复 -------------------------------------------------------------
+ // 协议端：send_private_msg 的 message 数组里放 { type:'reply', data:{ id } } 就能挂上引用，
  // 但它会先在本地消息库里把 id 换成序号——**查不到就静默丢掉这一段**（只写一行 warn）。
  // 所以这里发之前先 get_msg 确认一遍：引不上就明说，不让助手以为引上了。
   const replyMaxChars = Number.isInteger(context.config.replyMaxChars) && context.config.replyMaxChars > 0
@@ -299,8 +305,9 @@ export function create(context) {
 
  /**
  * 热改：上面那套是**启动默认值**；真正每次用之前会先看一眼
- * /data/state/policy.json（没有就看 life.live.yml 的同类键），最多 1 s 一次。
- * 所以改名单不用重启容器。
+ * config.policyJsonPath 指向的热文件（没有就看 config.policyYmlPath 的同类键），最多 1 s 一次。
+ * 所以改名单不用重启宿主。
+ * 两个路径都由宿主配，插件不猜。
  */
   const text = (value) => (typeof value === 'string' && value.trim() !== '' ? value.trim() : null);
   const policyReader = createPolicyReader({
@@ -610,8 +617,8 @@ export function create(context) {
  // 助手自己房间里的一张图（web_image 拿下来的那种）：容器里的路径 协议端 读不到，
  // 所以这里自己读成字节再 base64 发出去。只认助手房间和插件数据目录里的文件——
  // 不给助手一条"随便读宿主任何文件再发出去"的路。
- // ：助手的屋（home）和工作区是两个地方——做的在工作区，能发的只认屋，
- // 于是助手做出来的东西一张都发不出去（实测 qq_media_path_not_allowed）。
+  // 助手的屋（home）和工作区是两个地方——做的在工作区，能发的只认屋，
+ // 于是助手做出来的东西一张都发不出去（报 qq_media_path_not_allowed）。
  // 这里把工作区也列进来：助手能读、能写的地方，就能发出去。屋仍然是只读的（记录不该被沙箱改写），
  // 变的只是"出口够得着工作区"。
   function localImageRoots() {
@@ -697,7 +704,7 @@ export function create(context) {
 
   function messageId(value) {
     const text = String(value ?? '').trim();
- // 协议端的 message_id 是**有符号** 32 位整数（实测 -1659477413 这种），所以负号是合法的。
+ // 协议端的 message_id 是**有符号** 32 位整数，所以负号是合法的。
     if (!/^-?\d+$/.test(text)) throw fail('qq_invalid_message_id', text);
     return Number(text);
   }
@@ -788,7 +795,7 @@ export function create(context) {
   }
 
  // ---- 表情包的分类 / 标签-------------------------
- // 协议端只给一个 desc（收藏表情的备注，实测 53 字原样存取，中文和 # 都不变形），
+ // 协议端只给一个 desc（收藏表情的备注，原样存取，中文和 # 都不变形），
  // 没有分类字段。所以分类就写进备注： 名字 #分类 #标签 #标签
  // - 第一个 # 后面那段 = 分类，其余 = 标签
  // - 名字/标签里的 # 换成全角＃（不然读回来就分不开）
@@ -946,7 +953,7 @@ export function create(context) {
 
  /**
  * file 那条路：助手给的位置可能是屋里的相对路径（inbox/img-x.jpg），也可能是绝对路径。
- * 以前这里直接 readFileSync —— 相对路径一律 ENOENT（实测 qq_sticker_file_unreadable），
+ * 以前这里直接 readFileSync —— 相对路径一律 ENOENT（qq_sticker_file_unreadable），
  * 而绝对路径又等于"宿主任何文件都能读成表情再发出去"。两个毛病一起修：
  * 先按屋/工作区拼，再统一过 localFileBytes 的白名单。
  */
@@ -1010,8 +1017,8 @@ export function create(context) {
 
  /**
  * 媒体上传重试：
- * QQ 的图/语音走 highway 上传，偶发返回 error_code=9xx（实测 921，同一张图连试两次都失败）。
- * 这类失败重试一次往往就过；参数错（不是 9xx）重试没有意义。
+ * QQ 的图/语音走 highway 上传，偶发返回 error_code=9xx。
+ * 这类失败可能是瞬时的，所以重试一次；参数错（不是 9xx）重试没有意义。
  * 还是失败就抛一个助手自己看得懂的话，别让助手猜"是不是图太大"。
  */
   async function mediaCall(action, payload) {
@@ -1044,7 +1051,7 @@ export function create(context) {
       type: 'object',
       properties: {
         data: { type: 'string', description: '图片的 base64（不带 data: 前缀）' },
-        path: { type: 'string', description: '或者：助手自己房间里的图片路径（如 /data/home/web/xxx.jpg）' },
+        path: { type: 'string', description: '或者：助手自己房间里的图片路径（如 <房间>/web/xxx.jpg）' },
         file: { type: 'string', description: '或者：协议端能读到的路径/URL' },
         caption: { type: 'string', description: '跟在图片后面的一句话，可省略' },
         asSticker: { type: 'boolean', description: '当成表情包发：同一张图，QQ 里显示成表情（不进图库，想留着以后用走 qq_sticker_save）' },
@@ -1080,7 +1087,7 @@ export function create(context) {
     },
   });
 
- // ---- 手 1b：引用回复（B2）-------------------------------------------------
+ // ---- 手 1b：引用回复 ------------------------------------------------------
   context.tool('qq_reply', {
     description: '把一句话作为「引用回复」发到 QQ 私聊：先挂上对方（或助手）那条原消息，再跟你的话。'
       + '不给 messageId 就引用你最近收到的那条（' + Math.round(replyWindowMs / 60000) + ' 分钟内有效）。'
@@ -1127,7 +1134,7 @@ export function create(context) {
     },
   });
 
- // ---- 手 1c：表情包图库（B3）-----------------------------------------------
+ // ---- 手 1c：表情包图库 ----------------------------------------------------
   context.tool('qq_sticker_save', {
     description: '把一张图收进你自己的表情包图库（QQ 的「收藏表情」）。普通图片走这条就能变成表情包，收进去以后能反复发。'
       + '四个来源选一个：data 给 base64；file 给图片的路径或 URL；fromMessage 给一条消息的 message_id（那里面那张图）；'
@@ -1535,7 +1542,7 @@ export function create(context) {
  // ---- 手 5：贴表情 ----------------------------------------------------------
   context.tool('qq_react', {
     description: '给一条消息贴表情回应（QQ 的"表情表态"）。emojiId 是 QQ 表情 ID，默认 128077（点赞👍）。'
-      + '注意：实测 QQ 好友私聊不支持表情表态（协议端 retcode 100），群里才行。',
+      + '注意：QQ 好友私聊不支持表情表态（协议端 retcode 100），群里才行。',
     parameters: {
       type: 'object',
       properties: {
@@ -1553,8 +1560,8 @@ export function create(context) {
       try {
         await onebot('set_msg_emoji_like', { message_id: id, emoji_id: emoji, set: true });
       } catch (error) {
- // 实测：QQ 好友私聊不支持表情表态（协议端 retcode 100 "emoji reactions are not supported
- // on private messages"）。群里才行——助手暂时没有群，所以这条现在用不了，但要说清楚为什么。
+ // QQ 好友私聊不支持表情表态（协议端 retcode 100 "emoji reactions are not supported
+ // on private messages"），群里才行。这里翻成一条明确的错误，不让原始报错冒上去。
         if (/emoji reactions are not supported/i.test(String(error?.message))) {
           throw fail('qq_react_private_unsupported', 'QQ private chats do not support emoji reactions');
         }
@@ -1871,7 +1878,7 @@ export function create(context) {
   }
 
  /**
- * 一组 @ 目标：QQ 号，或者字符串 'all'（@ 全体，）。可以混着给。
+ * 一组 @ 目标：QQ 号，或者字符串 'all'（@ 全体）。可以混着给。
  * 重复的只留一个，顺序照助手给的（助手要先说 @谁 再说话，顺序就是语气的一部分）。
  */
   function atList(value, code) {
@@ -2400,7 +2407,7 @@ export function create(context) {
     },
   });
 
- // ---- 手 16-19：QQ 空间（B4）-------------------------------------------------
+ // ---- 手 16-19：QQ 空间 ----------------------------------------------------
  // 读（自己的说说、好友动态）随时可用；发和删是"对外公开发言"，要先由宿主打开
  // config.qzonePost —— 默认 false，调了直接被拒，不会悄悄发出去。
 
@@ -2457,7 +2464,7 @@ export function create(context) {
       const num = Number.isInteger(rawNum) ? Math.min(20, Math.max(1, rawNum)) : qzoneFeedCount;
       const rawPos = Number(args?.pos ?? 0);
       const pos = Number.isInteger(rawPos) && rawPos > 0 ? rawPos : 0;
- // 实测：这个动作不传 target_uin 一律 retcode 100，
+ // 这个动作不传 target_uin 一律 retcode 100，
  // 哪怕文档写着"默认当前账号"。所以默认显式传助手自己的号。
       const uinRaw = args?.uin === undefined || args?.uin === null ? '' : String(args.uin).trim();
       const uin = uinRaw === '' ? envId : (/^\d+$/.test(uinRaw) ? Number(uinRaw) : null);
@@ -2710,14 +2717,14 @@ export function create(context) {
   const FORWARD_UNPACK_MAX = 100;
 
  /**
- * 包放哪儿：宿主给了插件数据目录就放它下面（config.forwardDir 可以显式覆盖）；
- * 没有就是部署路径 /data/state/forwards（宿主没传 dataRoot 时走的就是这条）。
+ * 包放哪儿：config.forwardDir 显式指定，否则放宿主的插件数据目录下面；
+ * 宿主没给数据目录就报清楚，不猜一个路径。
  */
   function forwardsDir() {
     const declared = typeof context.config.forwardDir === 'string' ? context.config.forwardDir.trim() : '';
     if (declared !== '') return path.resolve(declared);
-    const base = typeof context.dataDir === 'string' && context.dataDir !== '' ? path.resolve(context.dataDir) : '/data/state';
-    return path.join(base, 'forwards');
+    if (typeof context.dataDir !== 'string' || context.dataDir === '') throw new Error('life-qq needs config.forwardDir or a host dataDir');
+    return path.join(path.resolve(context.dataDir), 'forwards');
   }
 
  /**
@@ -3105,7 +3112,7 @@ export function create(context) {
  /**
  * 图片也落一份进助手的收件箱。
  *
- * 图片以前只存在 /data/state/media（助手的禁区），宿主管道虽然能看，但 edit_image
+ * 图片以前只存在插件数据目录里（助手的禁区），宿主管道虽然能看，但 edit_image
  * 只认"屋里的文件"——所以"你发助手的图助手无法二创"。同一份字节再放个名字到 inbox，
  * 名字用内容哈希：同一张图发十次也只有一份，不会把收件箱刷满。
  */

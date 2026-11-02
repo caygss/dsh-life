@@ -18,7 +18,7 @@ export async function compressAndStore(input) {
   if (store === null || typeof store !== 'object' || typeof store.atomic !== 'function') throw new TypeError('missing_store');
 
  // Addressed mode writes the memory and its address in one call (schema v3). The
- // plain-text prompt stays available because it is the measured default: switching
+ // plain-text prompt stays available because it is the default: switching
  // it here is a caller decision, not a silent change of contract.
   const addressed = input.addressed === true;
   const compress = addressed ? compressSegmentAddressed : compressSegment;

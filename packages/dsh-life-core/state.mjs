@@ -21,7 +21,7 @@
  * state.mjs owns it; scheduler.mjs takes a stateOf getter and derives from it.
  *
  * Physiology never sets the state directly: rhythm.mjs only answers whether the agent is
- * sleepy or rested, and the caller passes that in as guards. the design (falling
+ * sleepy or rested, and the caller passes that in as guards. The design (falling
  * asleep is its decision) is enforced by requiring guards.mustSleep only for
  * why='sleepy', not for why='decided_sleep'.
  */
@@ -59,7 +59,7 @@ export const WHY = Object.freeze([
   'task_focus',
   'task_dropped',
   'you_spoke',
-  'she_spoke',
+  'agent_spoke',
   'sleepy',
   'decided_sleep',
   'natural_wake',
@@ -69,11 +69,26 @@ export const WHY = Object.freeze([
   'conversation_ended',
 ]);
 
+/**
+ * Reason names retired from an earlier revision. A host written against that
+ * older contract may still send one; it is accepted and upgraded immediately,
+ * so what gets written, logged and read back is always the current name. None
+ * of these is ever persisted or listed as current vocabulary.
+ */
+export const WHY_ALIASES = Object.freeze({
+  she_spoke: 'agent_spoke',
+});
+
+/** Map a retired reason onto its current name; anything else passes through. */
+export function normaliseWhy(why) {
+  return typeof why === 'string' && Object.hasOwn(WHY_ALIASES, why) ? WHY_ALIASES[why] : why;
+}
+
 export const WHY_LABELS = Object.freeze({
   task_focus: '开始手头的事',
   task_dropped: '放下手头的事',
   you_spoke: '你说话',
-  she_spoke: '助手开口',
+  agent_spoke: '助手开口',
   sleepy: '撑不住了',
   decided_sleep: '自己决定睡',
   natural_wake: '自然醒来',
@@ -88,7 +103,7 @@ export const WHY_TARGETS = Object.freeze({
   task_focus: Object.freeze(['absorbed']),
   task_dropped: Object.freeze(['free']),
   you_spoke: Object.freeze(['listening']),
-  she_spoke: Object.freeze(['listening']),
+  agent_spoke: Object.freeze(['listening']),
   sleepy: Object.freeze(['asleep']),
   decided_sleep: Object.freeze(['asleep']),
   natural_wake: Object.freeze(['free', 'listening']),
@@ -195,7 +210,7 @@ export function transition(store, input) {
   requireStore(store);
   const options = input === null || typeof input !== 'object' ? {} : input;
   const to = requireState(options.to);
-  const why = options.why;
+  const why = normaliseWhy(options.why);
   if (!WHY.includes(why)) throw new LifeStateError('invalid_why', String(why));
   if (!WHY_TARGETS[why].includes(to)) throw new LifeStateError('why_mismatch', why + ' -> ' + to);
   const at = isoAt(options.at);
@@ -266,7 +281,7 @@ export function listStateEvents(store, limit = 100) {
       at: row.at,
       from: payload.from,
       to: payload.to,
-      why: payload.why,
+      why: normaliseWhy(payload.why),
       itemId: payload.itemId ?? null,
       text: row.text,
     });

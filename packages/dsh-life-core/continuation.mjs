@@ -337,7 +337,7 @@ export function resolveMaterials(store, itemId, options) {
     if (material.type === 'package') return resolvePackage(store, material, limit);
     if (material.type === 'events') return resolveEvents(store, material, limit);
     if (material.type === 'pref') return resolvePref(store, material, limit);
-    return { type: 'book', ref: String(material.page), ok: true, page: material.page, text: null, note: 'book_text_not_available_until_p5' };
+    return { type: 'book', ref: String(material.page), ok: true, page: material.page, text: null, note: 'book_text_unavailable' };
   });
   return { itemId: task.itemId, title: task.title, materials: resolved };
 }

@@ -2,7 +2,7 @@
 // Commit 22ddee3792402c3e70ec5f86a63c3e3e895a2f60:
 // packages/client/ui-chat/src/client/contract/turn-metrics.ts
 // TypeScript types removed; the timing formulas and null semantics are retained.
-// Full notice: src/ai-dsh-LICENSE.txt. Call only with host-projected plain values.
+// MIT License; the full notice is in THIRD-PARTY-NOTICES.md. Call only with host-projected plain values.
 function usageOutputTokens(usage) {
   if (typeof usage !== 'object' || usage === null) return null;
   const value = usage.outputTokens;

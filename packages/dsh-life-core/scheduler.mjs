@@ -2,14 +2,14 @@
  * When the agent next surfaces.
  *
  * Two kinds of trigger, one assembly:
- * - timer: the agent calls herself. Interval is a mixture - a base draw plus a heavy tail -
- * because a plain uniform draw is anti-bursty (measured B = -0.33) while a life
- * should cluster (target B about 0.3-0.4).
+ * - timer: the agent calls itself. Interval is a mixture - a base draw plus a heavy tail -
+ * because a plain uniform draw spaces the calls too evenly while a life should
+ * cluster.
  * - event: something happened (you spoke, the environment changed). Never waits for
  * the timer; it is scheduled immediately, and if the agent is asleep it waits for it.
  *
- * Nothing here decides to wake its at a fixed clock time, and nothing forces sleep
- *: at most it reports that the agent cannot hold on any more.
+ * Nothing here decides to wake the agent at a fixed clock time, and nothing forces
+ * sleep: at most it reports that the agent cannot hold on any more.
  */
 import { LifeRhythmError } from './rhythm.mjs';
 
@@ -96,13 +96,13 @@ export function createScheduler(options = {}) {
  // 随机数由调用方给（助手要能被存下来、被测试钉死），不给就是老样子。
   const rng = typeof options.rng === 'function' ? options.rng : createRng(1);
   const now = options.now ?? (() => Date.now());
- // 每次排下一次醒来，都把「下一次什么时候」和「随机数走到哪」交出去存盘（D3）。
+ // 每次排下一次醒来，都把「下一次什么时候」和「随机数走到哪」交出去存盘。
   const onPlan = typeof options.onPlan === 'function' ? options.onPlan : null;
   const plan = () => {
     if (onPlan === null) return;
     onPlan({ nextAt, rngState: Number.isInteger(rng.state) ? rng.state : null, at: new Date(now()).toISOString() });
   };
- //: the five-state machine owns whether the agent is asleep. When a stateOf getter is
+  // The five-state machine owns whether the agent is asleep. When a stateOf getter is
  // supplied, this scheduler derives from it and refuses to keep a second copy - two
  // owners of "asleep" is how the day boundary ends up firing at the wrong moment.
   const stateOf = typeof options.stateOf === 'function' ? options.stateOf : null;
@@ -162,17 +162,17 @@ export function createScheduler(options = {}) {
       plan();
       return { awake: false, pending: pendingEvents };
     },
- /**
- * Hands over what arrived while the agent was asleep and clears the counter. The loop calls
+  /**
+   * Hands over what arrived while the agent was asleep and clears the counter. The loop calls
  * this when the state machine leaves 'asleep'; with a stateOf getter the scheduler
- * cannot wake its itself, so this is the only way the queue drains.
+ * cannot wake itself, so this is the only way the queue drains.
  */
     drainPending() {
       const released = pendingEvents;
       pendingEvents = 0;
       return released;
     },
- /** The agent woke, naturally or because you called its. */
+  /** The agent woke, naturally or because it was called. */
     wakeUp() {
       requireOwnership();
       awake = true;

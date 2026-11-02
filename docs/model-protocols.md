@@ -32,6 +32,11 @@ const body = toRequest('chat', {
 
 流式：`stream: true` 时用 `createStreamDecoder(protocol, …)` 逐块解出来；本仓示例宿主用的是非流式。
 
+有些网关会把整个 body 包成 `{ success, data }`。这是某一个部署的形状，不是协议，所以不自动猜：
+`createStreamDecoder(protocol, { …, envelope: 'data' })` 显式打开，默认按裸 body 解析。
+开关和线上形状不一致会立刻报错，而不是晚一点变成"模型缺失"：
+开着开关却收到裸 body → `model_response_envelope_invalid`；反过来 → `model_response_envelope_not_enabled`。
+
 ## 3. 端口与端点
 
 三种协议都只是 **同一个 baseUrl 下的不同路径**，所以“自定义端口”就是改 baseUrl：

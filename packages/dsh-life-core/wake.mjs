@@ -5,7 +5,7 @@
  * wrong version of this module:
  *
  * 1. an AWAKENING is a sleep -> awake transition, never an LLM call. If you talk to it
- * for half an hour after waking its, that is one awakening and thirty turns; the
+ * for half an hour after waking, that is one awakening and thirty turns; the
  * state machine cannot produce a second transition while the agent is already awake.
  * 2. awakenings closer than mergeWindowMs (40 minutes) are the SAME awakening - the agent was
  * woken, dozed off for a few minutes, woken again. The group keeps the deepest score.
@@ -22,7 +22,7 @@
  * night after six calls, which is not a real state of the world.
  *
  * A natural night wake counts - its sleep is fragmented either way - but at half weight:
- * nobody called its, and the agent usually goes back under on its own.
+ * nobody called it, and the agent usually goes back under on its own.
  *
  * All constants are uncalibrated. The tests pin the shape: monotonic, bounded, deeper
  * costs more than lighter, called costs more than natural, and effective sleep never
@@ -36,7 +36,7 @@ export const WAKE_RULES = Object.freeze({
   mergeWindowMs: 40 * 60 * 1000,
  /** Asleep for less than 60 minutes is light, up to 180 is medium, beyond is deep. */
   depthMinutes: Object.freeze({ light: 60, medium: 180 }),
- /** Measured design values: shallow is easy to wake, deep is not. */
+ /** Design values: shallow is easy to wake, deep is not. */
   successByDepth: Object.freeze({ light: 0.9, medium: 0.5, deep: 0.1 }),
   depthWeight: Object.freeze({ light: 0.5, medium: 1.0, deep: 1.6 }),
   triggerFactor: Object.freeze({ called: 1.0, natural: 0.5 }),
@@ -95,7 +95,7 @@ export function wakeSuccessChance(depth, rules = WAKE_RULES) {
 }
 
 /**
- * One attempt to wake its. Success is a draw against the depth's chance; the caller then
+ * One attempt to wake the agent. Success is a draw against the depth's chance; the caller then
  * forces the state transition (a called wake bypasses the minimum dwell time).
  *
  * @returns {{depth:string, chance:number, roll:number, woken:boolean}}
@@ -159,7 +159,7 @@ export function summarizeNight(stateEvents, options = {}) {
     if (previousTime !== null && time < previousTime) throw new LifeWakeError('events_not_ascending', String(event.at));
     previousTime = time;
 
- // Going back to sleep records when the next depth is measured from; it does not end the
+ // Going back to sleep records where the next depth is counted from; it does not end the
  // merge window, because being woken twice inside 40 minutes is still one awakening.
     if (event.to === 'asleep') { enteredAt = time; continue; }
     if (event.from !== 'asleep') continue;

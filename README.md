@@ -24,7 +24,8 @@ node examples/minimal-host/start.mjs
 ## 你必须自己准备
 
 1. 你自己的 system prompt（`examples/minimal-host/prompts/system.md` 只是玩具模板）。
-2. 所有端点：OneBot HTTP/WS、模型 baseUrl、TTS、ASR、生图、embeddings。
+2. 所有端点：OneBot HTTP/WS、模型 baseUrl、TTS、ASR、生图、embeddings
+   （向量参考：自部署的 Qwen3-Embedding-8B，OpenAI 兼容 `/v1/embeddings`，4096 维）。
 3. 你自己的人设、记忆策略和边界 —— 仓库里没有这些。
 
 Node >= 24.22.1（内置 sqlite / fetch / WebSocket），零 npm 依赖。
@@ -34,10 +35,20 @@ Node >= 24.22.1（内置 sqlite / fetch / WebSocket），零 npm 依赖。
 [PolyForm Noncommercial License 1.0.0](LICENSE)（SPDX: `PolyForm-Noncommercial-1.0.0`）：
 允许个人、学习、研究、评估、非营利等**非商业**用途；**禁止任何商业用途**，商业授权需另行取得书面许可。
 
+改编自第三方代码的部分另有许可：见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)（`step-timing.mjs` 来自 DeepSeek Harness，MIT）。
+
 ## 本地检查（可选）
 
-服务端分支保护需要 GitHub Pro；没有的话可以先装本地钩子，push 前跑和 CI 一样的两步：
+服务端分支保护需要 GitHub Pro；没有的话先装本地钩子，push 前跑和 CI 一样的两步：
 
 ```bash
 git config core.hooksPath .githooks
 ```
+
+钩子逻辑在 `.githooks/check.mjs`（Node，跨平台），任何时候都可以直接跑：
+
+```bash
+node .githooks/check.mjs
+```
+
+`pre-push` 本身是 `sh` 脚本，Windows 上由 Git Bash 提供；不想装钩子就手动跑上面那行。

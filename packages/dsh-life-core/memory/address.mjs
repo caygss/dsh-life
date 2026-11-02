@@ -1,10 +1,10 @@
 /**
  * Addressable memory fields (schema v3).
  *
- * Measured need (225-query evaluation): once the correct day was known,
- * four near-duplicate lines about the same subject still could not be told apart -
- * cosine differences of 0.03-0.08 sat inside the noise band. Similarity cannot answer
- * "which one" when the candidates are about the same thing.
+ * The need: once the correct day was known, near-duplicate lines about the same
+ * subject still could not be told apart - their cosine similarities sat inside the
+ * noise band. Similarity cannot answer "which one" when the candidates are about
+ * the same thing.
  *
  * So a package now carries what a question can actually point at:
  * occurredAt when it happened (not when it was written)

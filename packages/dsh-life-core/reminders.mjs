@@ -1,5 +1,5 @@
 /**
- * The agent's own moments: "过十分钟再问你" / "19 点记着吃饭" (D3).
+ * The agent's own moments: "过十分钟再问你" / "19 点记着吃饭"。
  *
  * Everything else in its day is either something that happened (an arrival), something
  * unfinished (a task) or its own rhythm (the scheduler). This is the fourth thing: a moment
@@ -16,7 +16,7 @@
  *
  * Two kinds in the same table:
  * 'remind' - comes due, waits for it if the agent is asleep, and the agent sees it when the agent wakes
- * 'alarm' - the same row and the same limits, except that a due alarm may WAKE its;
+ * 'alarm' - the same row and the same limits, except that a due alarm may wake the agent;
  * that is the whole difference, and the loop is the one that acts on it
  */
 import { randomUUID } from 'node:crypto';
@@ -196,7 +196,7 @@ export function dueReminders(store, at, options = {}) {
   const when = typeof at === 'number' ? at : Date.parse(String(at));
   if (!Number.isFinite(when)) throw new LifeReminderError('invalid_time', String(at));
   const limit = Number.isInteger(options.limit) && options.limit > 0 ? options.limit : REMINDER_LIMITS.listDefault;
- // The loop asks for the two kinds separately: an alarm may wake its, a reminder may not.
+  // The loop asks for the two kinds separately: an alarm may wake the agent, a reminder may not.
   const kind = options.kind === undefined ? null : options.kind;
   if (kind !== null && !REMINDER_KINDS.includes(kind)) throw new LifeReminderError('invalid_kind', String(kind));
   const where = kind === null
@@ -263,7 +263,7 @@ export function reminderStats(store, at) {
   const rows = store.db.prepare("SELECT due_at, kind FROM life_reminders WHERE status='pending' ORDER BY due_at, id").all();
   const pending = rows.length;
   const overdue = rows.filter((row) => Date.parse(row.due_at) <= when).length;
- // alarms: how many of the pending ones may wake its if they land in its sleep.
+  // alarms: how many of the pending ones may wake the agent if they land in its sleep.
   const alarms = rows.filter((row) => row.kind === 'alarm').length;
  // missed: 该响没响的闹钟（过点超过窗口还挂着）——这一条助手会被告知，不会被悄悄补成一响。
   const missed = rows.filter((row) => row.kind === 'alarm' && when - Date.parse(row.due_at) > REMINDER_LIMITS.alarmMaxLateMs).length;

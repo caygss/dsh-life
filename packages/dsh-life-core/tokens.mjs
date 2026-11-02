@@ -1,15 +1,12 @@
 /**
  * Token estimation for context budgeting.
  *
- * Calibration: measured on real traffic, not assumed.
- * Two real requests against the fixed model on the same synthetic Chinese corpus:
- * 9,099 chars -> 5,827 prompt tokens (0.640 tokens/char)
- * 358,108 chars -> 228,351 prompt tokens (0.638 tokens/char)
- * So one token is about 1.56 Chinese characters, not the 0.75 the earlier
- * byte-based rule of thumb implied; that estimate was 61% too high.
+ * Calibration: the ratios below are a budgeting estimate, not provider-exact
+ * billing. They put Chinese at about 0.64 tokens per character (about 1.56
+ * characters per token), closer to how modern providers split CJK text than a
+ * byte-based rule of thumb would be.
  *
- * This is still an estimate for budgeting, not provider-exact billing. Counting is
- * per code point, and metadata/markup is counted as text.
+ * Counting is per code point, and metadata/markup is counted as text.
  */
 export const DEFAULT_TOKEN_PROFILE = Object.freeze({
   cjkTokensPerChar: 0.64,
@@ -17,7 +14,7 @@ export const DEFAULT_TOKEN_PROFILE = Object.freeze({
   otherTokensPerChar: 0.5,
 });
 
-/** Measured from evidence: Chinese characters per token. */
+/** Chinese characters per token under the default profile. */
 export const MEASURED_CJK_CHARS_PER_TOKEN = 1.56;
 
 const CJK_RANGES = [
@@ -58,7 +55,7 @@ export function estimateTokens(text, profile = DEFAULT_TOKEN_PROFILE) {
   return Math.ceil(raw);
 }
 
-/** How many Chinese characters fit in a token budget under the measured profile. */
+/** How many Chinese characters fit in a token budget under the default profile. */
 export function charsForTokens(tokens) {
   return Math.floor(tokens / DEFAULT_TOKEN_PROFILE.cjkTokensPerChar);
 }

@@ -6,7 +6,7 @@
  * taken back and the reason for it - that is the whole point of the annotation style.
  * No closure walk, no pre-publication interception, no rewriting of history.
  *
- * The reason is required. A withdrawal without a reason would leave its with a hole
+ * The reason is required. A withdrawal without a reason would leave it with a hole
  * and no explanation.
  */
 import { LifeStoreError } from '../store/db.mjs';

@@ -1,5 +1,5 @@
 /**
- * life-time：助手自己定的时刻，做成助手手上的三个动作（D3，）。
+ * life-time：助手自己定的时刻，做成助手手上的四个动作。
  *
  * 以前助手只有"节奏"：宿主每隔 5–70 分钟随机叫助手一次，助手醒了再看现在几点、再决定说什么。
  * 于是"19 点提醒对方吃饭"这种事只能靠运气撞上。这个插件把"到点回来"变成一个助手能自己下的动作。
@@ -51,7 +51,7 @@ export function create(context) {
     note_required: '要提醒什么？那句话不能是空的。',
     note_too_long: '那句话太长了（' + noteMaxChars + ' 字以内），说短一点我才能原样记着。',
     due_required: '什么时候提醒你？给个时刻，或者给多少分钟以后。',
-    due_invalid: '这个时间我没看懂；写成 2026-10-30T19:00:00+08:00 这样，或者直接说多少分钟以后。',
+    due_invalid: '这个时间我没看懂；写成 2026-01-01T19:00:00Z 这样，或者直接说多少分钟以后。',
     reminder_too_soon: '太近了，至少 30 秒以后——不然等于我自言自语。',
     reminder_too_far: '太远了，最多 30 天。',
     reminder_queue_full: '你手上已经挂着 20 件了，先做掉几件，或者取消几件再定。',
@@ -77,7 +77,7 @@ export function create(context) {
     parameters: {
       type: 'object',
       properties: {
-        dueAt: { type: 'string', description: '什么时候，例如 2026-10-30T19:00:00+08:00；跟 inMinutes 二选一' },
+        dueAt: { type: 'string', description: '什么时候，例如 2026-01-01T19:00:00Z；跟 inMinutes 二选一' },
         inMinutes: { type: 'integer', description: '多少分钟以后（1–43200）；跟 dueAt 二选一' },
         note: { type: 'string', description: '到点要想起的那句话（' + noteMaxChars + ' 字以内，原样记着）' },
         alarm: { type: 'boolean', description: 'true = 闹钟：到点时你在睡，也会把你叫起来；不填 = 普通提醒，只等你醒' },

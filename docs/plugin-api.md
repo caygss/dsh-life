@@ -23,7 +23,7 @@ packages/dsh-<名字>/
   "platforms": ["any"],
   "capabilities": [
     { "name": "schedule",  "surface": "schedule" },
-    { "name": "time_list", "surface": "tool" }
+    { "name": "hello_world", "surface": "tool" }
   ],
   "config": { "timeZone": "UTC" }
 }
@@ -46,12 +46,18 @@ surface 决定「这件事能做什么」，宿主只会把声明过的能力交
 | surface | 用途 |
 |---|---|
 | `tool` | 变成一个模型可调用的工具 |
-| `outbound` | 一个出站通道（把消息发出去） |
 | `inbound` | 一个入站订阅（收到消息时回调） |
-| `schedule` | 定时/提醒服务 |
-| `memory` | 记忆服务 |
-| `net` | 联网服务 |
-| `image` / `paint` | 取图 / 生图服务 |
+| `outbound` | 一个出站通道（把消息发出去） |
+| `exec` | 在沙箱里起一个一次性进程 |
+| `fs` | 读写宿主授予的目录 |
+| `net` | 联网：宿主的 search / fetch 两个动作 |
+| `secret` | 用宿主托管的凭据，只在插件内部用 |
+| `memory` | 记忆服务（`context.memory`） |
+| `schedule` | 定时/提醒服务（`context.reminders`） |
+| `image` | 生图服务（`context.paint`） |
+| `image-pool` | 把账号文件交给生图号池（`context.imagePool`） |
+
+`device` / `display` / `vm` 是预留、尚未实现的三项，声明了也拿不到服务。
 
 ## 3. 工厂文件 index.mjs
 
@@ -60,7 +66,7 @@ export function create(context) {
   context.tool('hello_world', {
     description: '说一句你好。',
     parameters: { type: 'object', properties: {}, additionalProperties: false },
-    async execute { return '你好。'; },
+    async execute() { return '你好。'; },
   });
 }
 ```
@@ -79,12 +85,30 @@ export function create(context) {
 | `inbound(name, subscribe)` | 注册入站：插件把「怎么收」交给宿主 |
 | 各服务对象 | `memory` / `reminders` / `net` / `paint` / `imagePool`，没声明就报错 |
 
+### 宿主环境变量（`env`）
+
+`env` 是宿主在加载插件时传进来的只读对象；**插件自己不去读 `process.env`**。
+本仓两个插件用到它，键不全时插件在 `create` 里直接报错，不会带着空值跑起来：
+
+| 插件 | 键 | 必需 | 用途 / 缺了会怎样 |
+|---|---|---|---|
+| `life-room` | `homeRoot` | 是 | 助手的屋（读 + 写 `mine/`）。缺了直接抛 `life-room needs env.homeRoot from the host` |
+| `life-room` | `libraryRoot` | 否 | 只读资料区；缺了就只有 home |
+| `life-room` | `system` | 否 | `false` 关掉"机器现状"那一层（时间/磁盘/CPU） |
+| `life-qq` | `homeRoot` | 否 | 收到的文件默认落 `<homeRoot>/inbox`；缺了退回插件数据目录（助手读不到） |
+| `life-qq` | `workspaceRoot` | 否 | 允许往外发的第二条根（助手干活的地方）；缺了只认 home |
+| `life-qq` | `qqUserId` | 否 | 助手自己的 QQ 号；`recipients.mode=list` 且 ids 为空时必需 |
+| `life-qq` | `onebotToken` | 否 | OneBot HTTP 的 `Authorization: Bearer`；也可用 `config.tokenPath` 指文件 |
+| `life-qq` | `onebotWsToken` | 否 | OneBot WebSocket 的鉴权；用 WS 入站时才需要 |
+
+其余插件（memory / time / web / hand / draw / image-pool）不读 `env`，只靠 `config` 和服务对象。
+
 入站的样子（插件侧）：
 
 ```js
 context.inbound('qq_recv', (emit) => {
   // 自己连协议端；收到消息就 emit
-  emit({ channel: 'qq', from: '10001', text: '你好', at: new Date.toISOString });
+  emit({ channel: 'qq', from: '10001', text: '你好', at: new Date().toISOString() });
 });
 ```
 
@@ -99,10 +123,11 @@ context.outbound('qq_send', async ({ text }) => { /* 发出去 */ });
 宿主按这个顺序检查，任何一步失败都不半装：
 
 1. 已安装且已启用（插件在市场里的状态）
-2. 声明能通过校验
+2. 声明存在、能通过校验，且 id 与目录一致
 3. 版本与已安装记录一致
-4. 工厂导出了 `create`
-5. 注册的能力都在声明里，且 surface 对得上
+4. 声明里 `requires` 的插件与服务都在（缺一项就整份不加载，不静默降级）
+5. 工厂导出了 `create`
+6. 注册的能力都在声明里，且 surface 对得上
 
 ## 5. 错误码
 
@@ -118,6 +143,11 @@ context.outbound('qq_send', async ({ text }) => { /* 发出去 */ });
 | `tool_for_non_tool_surface` | surface 不对 |
 | `duplicate_tool` | 同一个名字注册两次 |
 | `slot_not_implemented` | 宿主没有这个服务 |
+| `plugin_not_installed` / `plugin_disabled` | 宿主里没有这个插件，或它没启用 |
+| `requires_unmet` | `requires` 里的插件/服务不存在；整份不加载 |
+| `*_service_unavailable` | 声明了某道门，但宿主没交出那个服务 |
+| `invalid_outbound_handler` / `invalid_inbound_handler` | 出站/入站注册的不是函数 |
+| `load_failed` | 其它加载期异常（原样带出） |
 
 ## 6. 边界
 

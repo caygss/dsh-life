@@ -1,24 +1,25 @@
 /**
  * 号池那两只手。
  *
- * 为什么单独一个插件、而不是塞进 life-draw：这套链路由外部服务提供（生图服务、
- * 本部署自带的 import key）。分发出去以后，别人装的副本里不该出现「传号池」
- * 「查号池」这样的动作——所以 manifest 里写了 requires：
+ * 为什么单独一个插件、而不是塞进 life-draw：这只手的前提是宿主那边真有一套生图
+ * 账号池（导入要钥，导入后按号轮换画图），不是每个宿主都有。宿主没有的时候，
+ * 装了这个插件也不该凭空多出「传号池」「查号池」这样的动作——所以 manifest 里写了
+ * requires：
  *
  * requires.plugins = ["life-draw"] ← 装了原生生图插件，才配谈号池
- * requires.services = ["imagePool"] ← 宿主真的交出了号池服务（本机有 import key）
+ * requires.services = ["imagePool"] ← 宿主真的把号池服务交了出来
  *
  * 两条有一条不满足，这个插件就不加载（loader 记进 skipped，不是报错）。助手的工具表里
- * 也就没有这两个工具，别人拿去分发时看不到这条链路。
+ * 也就没有这两个工具。
  *
- * 助手看不见的东西：文件内容、import key、每个账号的 token。插件拿到的只是
- * context.imagePool 这个动作；分批、验号、去重、删原件全在宿主那一侧。
+ * 助手看不见的东西：文件内容、导入用的钥、每个账号的 token。插件拿到的只是
+ * context.imagePool 这个动作；读文件、分批、验号、去重、删原件全在宿主那一侧。
  */
 
 /** 宿主的错误码 → 一句助手能懂的话。认不出的就照原样说，不编。 */
 const MESSAGES = Object.freeze({
  // 号池这边
-  missing_key: '这条线没接：本机没有导入钥。',
+  missing_key: '这条线没接：宿主没有提供导入用的钥。',
   empty_file: '这份文件里没有一行能读的。',
   import_day_cap: '今天导入的次数用完了，明天再来。',
   too_many_batches: '这份太多了，一次导不完；分成几份再给我。',
@@ -59,11 +60,11 @@ export function create(context) {
 
   context.tool('image_pool_import', {
     description: '把一份账号文件交给生图那条线导入号池。我不看里面的内容，只回给你导进去几条、'
-      + '几条跳过、几条无效。from 是它在屋里的位置（例如 inbox/FF261031131431.txt）。',
+      + '几条跳过、几条无效。from 是它在屋里的位置（例如 inbox/accounts.txt）。',
     parameters: {
       type: 'object',
       properties: {
-        from: { type: 'string', description: '屋里那份文件的位置，例如 inbox/FF261031131431.txt' },
+        from: { type: 'string', description: '屋里那份文件的位置，例如 inbox/accounts.txt' },
         keep: { type: 'boolean', description: '要不要留下原件；默认不留（导完就删）' },
       },
       required: ['from'],

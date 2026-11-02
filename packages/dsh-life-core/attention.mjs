@@ -8,8 +8,8 @@
  * being awake is not the same as being interruptible. The state the agent is
  * in when something arrives decides its handling, and that decision is recorded on the
  * row (immediate / notify / defer) so it survives its waking up: a message that arrived
- * while the agent slept is still marked as such afterwards, which is what the subtitle
- * "已暂存 — 07:00 醒来 · N 条留言" is built from.
+ * while the agent slept is still marked as such afterwards, which is what a host shows
+ * in its own summary of pending arrivals.
  *
  * Two rules are enforced rather than documented:
  * - nothing is merged. Three messages are three rows; there is no coalescing path,

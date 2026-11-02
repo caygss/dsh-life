@@ -1,5 +1,5 @@
 /**
- * The first first-party plugin: its room, as two tools the agent can call (W2).
+ * The first first-party plugin: the room, as six tools the agent can call.
  *
  * This is host code that happens to live in a plugin directory. It is installed, granted
  * and enabled through its plugin table like any other plugin, and its tools reach its tool
@@ -7,7 +7,7 @@
  * deliberately NOT true: a third-party plugin cannot import host modules like this. It
  * would come with its own code and would have to work through granted surfaces.
  *
- * The two tools are views, not a second implementation of the boundary: room.mjs does the
+ * The tools are views, not a second implementation of the boundary: room.mjs does the
  * resolving, the escape checks and the caps, and this file only turns the result into
  * text the agent can read.
  */
@@ -177,7 +177,7 @@ export function create(context) {
 
  // ---- 写：屋里只开「mine」这一小块--------------------
  // 三个动作：写一份、看看写了什么、删掉自己写的。宿主封印的那三样（宿主留的纸 / 本子 /
- // 私记）不在这一块里，所以助手的手碰不到——沙箱那边对 /data/home 仍然是只读。
+ // 私记）不在这一块里，所以助手的手碰不到——沙箱那边对 home 仍然是只读。
   context.tool('room_write', {
     description: '往你自己的地方写一份东西（文字）：想留下来的、想以后再看的，都放这儿。同名就是改你自己那一份。写完它就在屋里，可以直接发出去。',
     parameters: {
@@ -240,7 +240,7 @@ context.tool('room_import', {
     parameters: {
       type: 'object',
       properties: {
-        from: { type: 'string', description: '屋里那个文件的位置，例如 inbox/FF261031131431.txt' },
+        from: { type: 'string', description: '屋里那个文件的位置，例如 inbox/accounts.txt' },
         mode: { type: 'string', enum: ['copy', 'move'], description: 'copy 复制（默认）/ move 搬走' },
         name: { type: 'string', description: '搬过来叫什么名字，可省略（默认用原名）' },
         replace: { type: 'boolean', description: '你那块已经有同名的时候是否覆盖，默认不覆盖' },

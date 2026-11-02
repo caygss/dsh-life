@@ -6,7 +6,7 @@
  * model, validate the result, and only then hand a complete draft to the store.
  * That keeps SQLite free of network waits (see store/db.mjs).
  *
- * Two guards come straight from one earlier measured run:
+ * Two guards are enforced here:
  * - finish_reason 'length' means the output was cut; a truncated memory is
  * rejected instead of being stored as if complete.
  * - the output budget must be generous, because reasoning tokens are spent
@@ -24,15 +24,15 @@ export const COMPRESS_PROMPT_VERSION = 'life-compress-v2';
 export const BOUNDARY_KINDS = Object.freeze(['state']);
 
 export const DEFAULT_COMPRESS_RULES = Object.freeze({
- // 12, not 40: the end-to-end run showed a real three-line stretch ("he leaves tomorrow
- // for three days / noted / suitcase still on the floor") being rejected as too short.
+ // 12, not 40: for example a three-line stretch ("lights off / noted / bag still by
+ // the door") was rejected as too short under the old rule.
  // Short and honest beats padded.
   minChars: 12,
   maxChars: 2000,
   targetChars: 160,
- // Measured maximum so far is 4,753 tokens (almost all reasoning) for an 86-character
- // package. The cap is deliberately far above that: output is billed on actual usage,
- // so headroom costs nothing, while a truncated answer costs the whole stretch.
+ // Reasoning tokens dominate the output, so the observed maximum is far below this cap.
+ // The cap is deliberately generous: output is billed on actual usage, so headroom costs
+ // nothing, while a truncated answer costs the whole stretch.
   maxOutputTokens: 32_768,
   maxInputChars: 60_000,
 });
@@ -121,7 +121,7 @@ export function buildCompressMessages(segment, events, options = {}) {
 export async function compressSegment(input) {
   if (input === null || typeof input !== 'object') throw new LifeCompressError('invalid_input');
   const { summarise, segment, events, rules: overrides, signal } = input;
- // The stretch is summarised by whatever house this runs in (M1): the core knows there is
+ // The stretch is summarised by whatever house this runs in: the core knows there is
  // exactly one call to make, not which provider answers it.
   if (typeof summarise !== 'function') {
     throw new LifeCompressError('missing_summarise');
@@ -157,7 +157,7 @@ export async function compressSegment(input) {
 /* ------------------------------------------------------------------------- *
  * Addressed compression
  *
- * Measured need : a package that carries only its text can be found
+ * The reason: a package that carries only its text can be found
  * when the question repeats a detail, but not when it points at *when* or
  * *which occurrence*. The address fields are useless unless the compressor
  * actually produces them, so this prompt asks for them in the same call that
@@ -168,11 +168,11 @@ export async function compressSegment(input) {
  * ------------------------------------------------------------------------- */
 
 /**
- * Final version: v4's content (manner prohibition PLUS the per-sentence self-check),
- * restored after the v5 comparison. Basis, same 8 segments each round:
- * v3 no manner rule 4/8 segments invented an action, 2.1 s, 2159 output tokens
- * v4 manner rule + check 0-1/8, 6.5 s, 4262 tokens
- * v5 rule without check 4/8 invented a feeling or guess, 3.0 s, 2312 tokens
+ * Final version: the manner prohibition PLUS the per-sentence self-check, kept after
+ * comparing variants on the same segments:
+ *   without a manner rule     - often invented an action
+ *   with rule + self-check    - rarely invented anything
+ *   with rule, without check  - sometimes invented a feeling or guess
  * The check is worth its cost because compression runs while the agent sleeps: the extra
  * seconds never reach a conversation, and the thing it buys is not using words that
  * nobody said.

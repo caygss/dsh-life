@@ -7,8 +7,7 @@
  * hours.
  *
  * Deliberately does NOT do the diary or the weight update yet: those need the room
- * and the calibrated weights (the experiment). They are listed in the plan, not
- * pretended here.
+ * and the scoring weights. They are not pretended here.
  */
 import { readRange } from '../store/events.mjs';
 import { splitSegments } from './segments.mjs';

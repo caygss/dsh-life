@@ -4,25 +4,22 @@
  * score = w1*log(1+I) + w2*A + w3*R + w4*S + w5*Z - w6*X + noise
  * pick = softmax(score / T), sample - not top-1
  *
- * Why sampling instead of top-k: its memory should surprise its a little. Always
+ * Why sampling instead of top-k: the agent's memory should surprise it a little. Always
  * taking the maximum makes the same few entries repeat every wake.
  *
- * The weights below are CALIBRATED, not the all-ones
- * starting point of an earlier design. Measured first: the factors do not share a range -
- * importance spans log1p(1.5) with a pool standard deviation near 1.22, activation near
- * 0.28 (a log whose floor is -4), and relevance/association/open-loop/inhibition near 0.22.
- * With every weight at 1, importance carried about five times the amplitude of relevance,
- * and activation acted as a hard boost for whatever the agent had recalled once.
+ * The weights below are defaults, not all-ones. The factors arrive on very different
+ * scales, so equal weights would let one factor dominate by amplitude alone: importance
+ * is a small log, activation is a log with a floor, and the relevance family is a
+ * similarity. With every weight at 1, importance drowns out relevance and activation
+ * acts as a hard boost for whatever the agent had recalled once.
  *
- * The vector comes from an offline replay of this exact code over a 300-memory, 200-wake
- * synthetic world (src/life/experiment/five-factor.mjs), scored against seven bands derived
- * from two reference points (a uniform draw and the six most relevant memories). It is
- * expressed at |w| = sqrt(6) on purpose: sampling is softmax(score / T) with T = 0.7, so the
- * vector's LENGTH is a temperature decision, and the experiment found that half this length
- * lets relevance stop mattering while 1.5x makes its repeat herself.
+ * The vector is expressed at |w| = sqrt(6) on purpose: sampling is softmax(score / T)
+ * with T = 0.7, so its LENGTH is a temperature decision - shrinking it lets relevance
+ * stop mattering, stretching it makes the pool repeat itself. The defaults encode a
+ * ratio between the factors; the length is the temperature.
  *
- * What it is not: a model has never been asked whether these selections read like its.
- * That is the design's paid half (4 x 60 calls) and it has not run.
+ * What it is not: nobody has judged whether these selections read well. That is a
+ * quality question, separate from the arithmetic here.
  */
 import { activationValue } from './activation.mjs';
 

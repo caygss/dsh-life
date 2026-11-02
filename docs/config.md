@@ -17,15 +17,20 @@
 
 ## 2. 每个插件的端点（必须自己填）
 
+只有 `life-qq` 自己拿端点——它要直连 OneBot，可选接 TTS/ASR：
+
 | 插件 | 键 | 说明 |
 |---|---|---|
 | qq | `endpoint` / `wsEndpoint` | OneBot v11 的 HTTP 与 WebSocket 地址 |
 | qq | `voiceEndpoint` | TTS 端点；空 = 关闭语音 |
 | qq | `asrEndpoint` | 语音转写端点；空 = 关闭 |
-| web | `endpoint` | 搜索/抓取服务 |
-| draw | `imageEndpoint` | 生图服务 |
-| image-pool | `endpoint` | 图片池服务 |
-| memory | `endpoint` | OpenAI 兼容的 `/v1/embeddings`；留空则用本地 hash 编码器 |
+
+`memory`（embedding）、`net`（搜索/抓取）、`image`（生图）、`image-pool` 不是插件配置：
+插件只声明 surface，端点和 key 由**宿主**持有并注入，插件看不见 key。宿主那边怎么接，
+是宿主自己的事。
+
+参考部署：向量用**自部署的 Qwen3-Embedding-8B**（4096 维，OpenAI 兼容 `/v1/embeddings`，走环回地址），
+向量表以模型名区分 —— 换模型或换维度必须同时换表名，旧向量不会自动重算。
 
 ## 3. 语音：接你自己的 TTS
 

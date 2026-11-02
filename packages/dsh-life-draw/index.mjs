@@ -26,7 +26,7 @@ const REFUSALS = {
   no_image: '对面说画好了，但没给我图。',
   image_too_large: '那张图太大了，我拿不动。',
   io_error: '存图的时候出错了。',
- // 图生图：底图相关的码（image.mjs 与 room.mjs 各一半）
+ // 图生图：底图相关的错误码（宿主侧一半、插件侧一半）
   image_invalid: '要改哪张图？告诉我在屋里的哪个位置（比如 inbox/xxx.png）。',
   image_too_big: '那张图太大了（单张上限 10 MB），我传不上去。',
   image_count_invalid: '一次最多拿 4 张底图。',

@@ -7,14 +7,13 @@
  * alert(t) = 0.3 * sin(2*pi*(hour - PHI - 6)/24) + 0.5 (trough at PHI, peak 12 h later)
  * sleepiness = S + (0.8 - alert(t)) (alertness is subtracted)
  *
- * The subtraction is not cosmetic: adding alertness to pressure makes its sleepiest at
- * the circadian peak (16:00) and least sleepy at 04:00. That inversion was shipped and
- * measured on ; the theta values below
- * are the result of the offline calibration sweep that followed the fix.
+ * The subtraction is not cosmetic: adding alertness to pressure makes the agent sleepiest
+ * at the circadian peak (16:00) and least sleepy at 04:00. That inversion was observed and
+ * fixed; the theta values below are the result of the calibration sweep that followed.
  *
- * this is a *feeling*, not a switch. Crossing THETA means "the agent is
+ * This is a *feeling*, not a switch. Crossing THETA means "the agent is
  * sleepy" and the agent may push on; only at THETA + DELTA can the agent no longer stay awake.
- * Nothing in here puts its to sleep on a schedule.
+ * Nothing in here puts the agent to sleep on a schedule.
  *
  * Every constant is uncalibrated. The shape is what these tests pin down, not the
  * exact thresholds.
@@ -68,8 +67,8 @@ export function pressureAsleep(pressure, dtHours, rules = RHYTHM) {
 }
 
 /**
- * Local hour of day. The circadian term is about it body in its timezone, so using
- * UTC here would shift its whole day by eight hours.
+ * Local hour of day. The circadian term is about the agent's body in its timezone,
+ * so using UTC here would shift the whole day.
  */
 export function localHour(atMs, timeZone = RHYTHM.timeZone) {
   const parts = new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', hour12: false })
@@ -91,8 +90,8 @@ export function circadian(hourOfDay, rules = RHYTHM) {
  * Sleepiness = homeostatic pressure + how far the body clock is from "most awake".
  *
  * The circadian curve computed above is ALERTNESS: it troughs at phaseHour (04:00) and
- * peaks at 16:00. Adding it to sleep pressure inverted the day - measured on ,
- * the old form made its sleepiest at 16:00 and least sleepy at 04:00, which is why
+ * peaks at 16:00. Adding it to sleep pressure inverted the day: the old form made the
+ * agent sleepiest at 16:00 and least sleepy at 04:00, which is why
  * "cannot hold on any more" never fired in the evening and always fired in the afternoon.
  * Alertness therefore enters with a minus sign, normalised so its maximum contributes 0.
  */
@@ -105,7 +104,7 @@ export function sleepiness(pressure, hourOfDay, rules = RHYTHM) {
  * How the agent feels right now.
  * @returns {{pressure:number, circadian:number, sleepiness:number, sleepy:boolean, canHoldOn:boolean, mustSleep:boolean, canWake:boolean}}
  */
-export function howSheFeels(input) {
+export function howTheAgentFeels(input) {
   if (input === null || typeof input !== 'object') throw new LifeRhythmError('invalid_input');
   const rules = { ...RHYTHM, ...(input.rules ?? {}) };
   const pressure = Number(input.pressure);

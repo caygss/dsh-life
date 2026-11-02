@@ -1,5 +1,5 @@
 /**
- * 助手自己的记忆，做成助手手上的动作（D1/D2，）。
+ * 助手自己的记忆，做成助手手上的动作。
  *
  * 在这之前：记忆是**每轮宿主替助手塞进去的**——一次召回最多六段，助手不能自己翻旧账，
  * 也不能决定"这句我要原样记住"。修订和撤回在宿主侧早就有（corrected.mjs / withdraw.mjs），
@@ -11,8 +11,8 @@
  * 所以 unpack 回去读到的永远是助手当时写下的字，不是模型又转述一遍。
  * 2) package 的两种索引（词表 + 向量）和 package 本身在**同一个事务**里写完。分开写会出现
  * 「记住了一半」：不可见的记忆，比没记住更坏。
- * 3) note 事件的 role 是 system、kind 是 note。role 用 its 会让助手下一轮在对话历史里看见
- * 自己"说过"一段助手没说过的话（loop.mjs 对 system/tool 有明确过滤）。
+ * 3) note 事件的 role 是 system、kind 是 note。role 用 assistant 会让助手下一轮在对话历史里
+ * 看见自己"说过"一段没说过的话（宿主对 system/tool 有明确过滤）。
  * 4) 修订 = 旧标 withdrawn + 同区间新版本 + 指针；撤回 = 标 withdrawn + 理由。两样都不删除。
  * 5) 想不起来时**如实说没有**，不退化成"我记得你说过"这种编造。找不到就是找不到。
  *
@@ -220,7 +220,7 @@ export function createMemoryFacade(input) {
 
     const written = store.atomic((db) => {
  // 事件正文就是原话本身（不加"记住："这类前缀）：日志是法源，改一个字都不是原文。
- // role 用 system、kind 用 note，所以它进不了助手的对话历史（loop.mjs 明确过滤）。
+ // role 用 system、kind 用 note，所以它进不了助手的对话历史（宿主明确过滤）。
       const info = db.prepare('INSERT INTO life_events(at, kind, role, text, meta_json) VALUES(?,?,?,?,?)')
         .run(at, 'note', 'system', body, JSON.stringify({ memory: { id } }));
       const seq = Number(info.lastInsertRowid);

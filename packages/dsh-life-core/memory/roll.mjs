@@ -12,7 +12,7 @@
  * could quietly drop moments from it view that no package can ever bring back.
  *
  * Lazy rolling: rolling is not a schedule. Nothing here
- * happens on its own; a host calls rollToFit only when the measured context is nearly
+ * happens on its own; a host calls rollToFit only when the context is nearly
  * full. Real words in the context beat recalled packages, so the live window stays whole
  * for as long as it fits, and when a roll finally happens it only takes away what a
  * package can already answer for.
@@ -102,8 +102,8 @@ export function commitRoll(store, input = {}) {
 export const LIVE_WINDOW_ROLES = Object.freeze(['user', 'assistant']);
 
 /**
- * How much of its own speech the live window may keep. Owner's call : the agent
- * said the agent would rather have the real words in the context than a recall of them, so the
+ * How much of its own speech the live window may keep. The owner's call: the agent
+ * said it would rather have the real words in the context than a recall of them, so the
  * default is generous. It is a ceiling, not a schedule: nothing rolls until the context
  * itself is nearly full.
  */

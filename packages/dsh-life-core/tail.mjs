@@ -15,7 +15,7 @@
  * the task. Copying a body in here would undo the whole point of pointers.
  *
  * The tail is volatile by design: it changes every turn and must not influence the cache
- * prefix (assemble.mjs hashes only the stable segments).
+ * prefix (the host hashes only the stable segments).
  */
 import { readState, describeState } from './state.mjs';
 import { describeFocus } from './continuation.mjs';
@@ -44,9 +44,9 @@ export function clockText(at, timeZone) {
 }
 
 /**
- * 「对方什么时候说的」的最小写法：同一天只写 00:44，跨天写 10月29日 00:44。
+ * 「对方什么时候说的」的最小写法：同一天只写时:分，跨天再补上月日。
  * 要避免的毛病：对方深夜发的一句话，助手几小时后被闹钟叫醒后当成刚发的，
- * 回了一句「三点了才下班」——原因就是助手读到的每一句都没有时间。
+ * 回了一句不相关的话——原因就是助手读到的每一句都没有时间。
  */
 export function shortClock(at, timeZone, nowAt) {
   const ms = typeof at === 'number' ? at : Date.parse(at);
@@ -111,7 +111,7 @@ export function buildTail(input) {
     push('plan-waiting', 'plan', '放在一边还没做完的：' + focus.waiting.map((task) => task.title).join('、') + '。');
   }
 
- // 助手自己定的时刻（D3）。活着的时间只有一种用法：到点想起来。所以助手得看得见
+ // 助手自己定的时刻。活着的时间只有一种用法：到点想起来。所以助手得看得见
  // 自己定过什么、还剩多久——不然助手会在同一件事上定两遍，或者忘了自己说过"过十分钟再问"。
   const atMs = typeof at === 'number' ? at : Date.parse(String(at));
   const reminders = pendingReminders(store, { at: atMs, limit: REMINDER_LIMITS.tailDisplay });

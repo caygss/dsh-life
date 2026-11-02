@@ -4,7 +4,7 @@
  * The room is not a metaphor here: it is two directories with different permissions and
  * one view of the machine the agent lives on.
  *
- * home/ read + write its room (dist/, inbox/, its writing)
+ * home/ read + write the room (dist/, inbox/, its writing)
  * library/ read only what the owner puts there for it
  * system read only time, memory, disk, cpus - what a program can see
  *
@@ -16,10 +16,10 @@
  * 2. No path escape. '.' components, absolute paths and Windows drive letters are all
  * resolved first and then checked to still be inside the root - the check is on the
  * resolved path, not on the string the caller typed.
- * 3. No symlink follow. A link inside it room could point at a credential file, so
+ * 3. No symlink follow. A link inside the room could point at a credential file, so
  * links are reported and never traversed, and reads refuse them.
  * 4. Bounded. A listing has a depth and an entry cap, a read has a byte cap: "the agent can
- * see its room" must not become "the agent can dump the disk into it context".
+ * see the room" must not become "the agent can dump the disk into its context".
  *
  * Two things about honesty, since this module reports facts about the world:
  *
@@ -299,7 +299,7 @@ function measure(rootPath, cap) {
 }
 
 /**
- * What its room looks like right now: the roots the agent can see, their permission, their size,
+ * What the room looks like right now: the roots the agent can see, their permission, their size,
  * and the four starting things with whether each is actually there. Nothing is invented:
  * a book that was never given is reported absent.
  */
@@ -384,7 +384,7 @@ export function systemStatus(options) {
 }
 
 /**
- * Tells its when what the agent can see has changed.
+ * Tells the host when what the agent can see has changed.
  *
  * The previous view is remembered in its store; the first run records the view without
  * announcing anything (nothing changed - the agent is just starting). After that, a changed
@@ -548,7 +548,7 @@ export function deleteRoomMine(config, options) {
 /* ------------------------------------------------------------------------- *
  * 收件箱 → mine/：别人发给助手的东西，怎么变成"助手自己的"
  *
- * 由来：助手收到文件后想删原件，沙箱拒了（/data/home 对助手只读，写只走 room_write）。
+ * 由来：助手收到文件后想删原件，沙箱拒了（home 对助手只读，写只走 room_write）。
  * 于是给助手两个动作——复制一份进 mine/（想改就改自己的），或者搬进 mine/（原件随之
  * 消失，等于删掉）。这不新开一条"写整个房间"的口子：
  *

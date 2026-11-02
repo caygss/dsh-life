@@ -147,12 +147,20 @@ export function toRequest(protocol, options) {
   throw TypeError('model_protocol_unsupported');
 }
 
-const clineEndpoint = endpoint => {
-  try { const u = new URL(endpoint); return u.origin === 'https://api.cline.bot' && u.pathname === '/api/v1/chat/completions'; } catch { return false; }
-};
-export function unwrapEnvelope(value, endpoint) {
+/**
+ * Some gateways wrap the chat-completions body in { success, data } instead of
+ * returning the provider body directly. That is one deployment's shape, not a
+ * protocol, so it is never guessed: pass envelope: 'data' to the decoder when
+ * your gateway does it. Everything else is parsed as the bare body.
+ */
+export function unwrapEnvelope(value, envelope) {
   if (!record(value)) throw Error('model_response_envelope_invalid');
-  if (!clineEndpoint(endpoint) || (!Object.hasOwn(value, 'success') && !Object.hasOwn(value, 'data'))) return value;
+  if (envelope !== 'data') {
+  // A wrapped body with the switch off is a configuration mistake, not a provider
+  // error: say so instead of letting it surface later as "model missing".
+    if (value.success === true && record(value.data)) throw Error('model_response_envelope_not_enabled');
+    return value;
+  }
   if (value.success !== true || !record(value.data) || Object.hasOwn(value, 'choices') || Object.hasOwn(value.data, 'data')) throw Error('model_response_envelope_invalid');
   return value.data;
 }
@@ -173,7 +181,7 @@ const toUsage = (usage, protocol) => {
 };
 
 /** One SSE decoder per protocol. Emits neutral deltas and one final assistant message. */
-export function createStreamDecoder(protocol, { modelId, endpoint, onText = null, onThinking = null, onToolCall = null, captureReasoning = false } = {}) {
+export function createStreamDecoder(protocol, { modelId, endpoint, envelope = null, onText = null, onThinking = null, onToolCall = null, captureReasoning = false } = {}) {
   const decoder = new TextDecoder('utf-8', { fatal: true });
   let line = '', data = [], content = '', thinking = '', usage = null, finishReason = null, done = false, terminated = false;
   const toolCalls = new Map();
@@ -184,7 +192,7 @@ export function createStreamDecoder(protocol, { modelId, endpoint, onText = null
   const handle = payload => {
     if (payload === '[DONE]') { done = true; return; }
     let chunk; try { chunk = JSON.parse(payload); } catch { throw Error('model_response_not_json'); }
-    chunk = unwrapEnvelope(chunk, endpoint);
+    chunk = unwrapEnvelope(chunk, envelope);
  // A provider that fails mid-stream is reported as an error envelope. Name it
  // as such: the alternative was "model missing", which pointed at the
  // response shape instead of at the provider that refused the request.

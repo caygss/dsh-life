@@ -26,11 +26,11 @@
  */
 
 export const DEFAULT_SEGMENT_RULES = Object.freeze({
- // Measured in the first real day: its own turns are 5-70 minutes apart, so a
- // 30-minute idle rule turned every single reply into its own one-line memory. With the
- // five-state machine writing boundaries, silence between two turns is not the end of a
- // stretch - sleep and state changes are. The idle rule now only catches a genuinely dead
- // log, and maxSegmentMs still caps a stretch at three hours.
+ // A conversation's turns arrive minutes apart, so a short idle rule would turn every
+ // reply into its own one-line memory. With the five-state machine writing boundaries,
+ // silence between two turns is not the end of a stretch - sleep and state changes are.
+ // The idle rule therefore only catches a genuinely dead log, and maxSegmentMs still
+ // caps a stretch at three hours.
   idleGapMs: 4 * 60 * 60 * 1000,
   maxSegmentMs: 3 * 60 * 60 * 1000,
   timeZone: 'UTC',

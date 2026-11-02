@@ -1,9 +1,9 @@
 /**
  * The tool seam.
  *
- * Three things used to be built from three different sources: the tool table its core
- * asked for, the schemas the runtime actually registered, and the allowlist restrict
- * was given. In the first wake test they disagreed - the receipt counted one thing and
+ * Three things used to be built from three different sources: the tool table the core
+ * asked for, the schemas the runtime actually registered, and the allowlist the caller
+ * passed in. In an early wake test these disagreed - the receipt counted one thing and
  * the runtime held another - so the receipt could not answer "what could the agent do".
  *
  * This module makes that class of bug structural rather than a thing to remember:

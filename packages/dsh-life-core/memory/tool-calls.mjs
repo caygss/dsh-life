@@ -87,8 +87,8 @@ function resultText(result, maxChars, tailChars) {
   if (typeof result === 'string') {
     if (result.length === 0) return { text: '', chars: 0, truncated: false, bytes: null };
     if (result.length <= maxChars) return { text: result, chars: result.length, truncated: false, bytes: null };
- // 头：截在**行**上，不截在半句话里（实测按字硬切切出了
- // "needs exec, which has no backend yet。
+ // 头：截在**行**上，不截在半句话里（按字硬切会切出
+ // 半句 "needs exec, which has no backend yet"。
     const headBudget = Math.max(0, maxChars - tailChars);
     const headSlice = result.slice(0, headBudget);
     const headBreak = headSlice.lastIndexOf('\n');

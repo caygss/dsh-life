@@ -66,7 +66,7 @@ function normaliseAddress(draft) {
  * Inserts one package inside a transaction the caller already opened. Split out of
  * writePackage because a correction (corrected.mjs) has to withdraw the old package, insert
  * its replacement and record the pointer in ONE transaction - a half-applied correction
- * would leave its with neither version. Validation and the overlap guard are unchanged.
+ * would leave it with neither version. Validation and the overlap guard are unchanged.
  */
 export function insertPackage(db, draft) {
   if (draft === null || typeof draft !== 'object') throw new LifeStoreError('invalid_package');

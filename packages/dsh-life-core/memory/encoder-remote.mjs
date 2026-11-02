@@ -1,14 +1,21 @@
 /**
- * Remote embedding encoder (SiliconFlow Qwen3-Embedding).
+ * Remote embedding encoder (OpenAI-compatible /v1/embeddings).
+ *
+ * Reference deployment: a self-hosted Qwen3-Embedding-8B behind an
+ * OpenAI-compatible endpoint, 4096 dimensions (the model supports MRL, so the
+ * width is a deployment choice - whatever you pick has to stay fixed per table).
+ * Any model that speaks the same contract works: keep `name` distinct per model,
+ * because the table that stores the vectors is keyed by it.
  *
  * This is the real semantic route: unlike the local hash encoder, it can match a
- * paraphrase ("我读到哪儿了" -> "第十九章"). It costs a network call, so recall
+ * paraphrase ("搬家" -> "换房子"). It costs a network call, so recall
  * splits in two: index time embeds a batch of packages, query time embeds one cue
  * and then runs the pure-SQL recall over stored vectors.
  *
  * The key is passed in by the caller and never logged, echoed or persisted here.
  */
-export const SILICONFLOW_ENDPOINT = 'https://api.siliconflow.cn/v1/embeddings';
+/** Loopback default: the reference deployment serves the model on its own host. */
+export const DEFAULT_EMBEDDING_ENDPOINT = 'http://127.0.0.1:8080/v1/embeddings';
 
 export class LifeEncoderError extends Error {
   constructor(code, detail) {
@@ -25,7 +32,7 @@ export function createRemoteEncoder(options) {
   if (options === null || typeof options !== 'object') throw new LifeEncoderError('invalid_options');
   const {
     model,
-    endpoint = SILICONFLOW_ENDPOINT,
+    endpoint = DEFAULT_EMBEDDING_ENDPOINT,
     fetchImpl = globalThis.fetch,
     timeoutMs = 60_000,
   } = options;
@@ -82,10 +89,10 @@ export function createRemoteEncoder(options) {
     });
   }
 
- // 名字是向量表的键：换名字等于换一套向量，所以允许宿主指定（本地服务不能叫 sf-*）。
+ // 名字是向量表的键：换名字等于换一套向量，所以允许宿主指定（自部署服务别沿用别的服务的名字）。
   const encoderName = typeof options.name === 'string' && options.name !== ''
     ? options.name
-    : 'sf-' + model.replace(/[^A-Za-z0-9]+/g, '-').toLowerCase();
+    : 'emb-' + model.replace(/[^A-Za-z0-9]+/g, '-').toLowerCase();
 
   return {
     name: encoderName,

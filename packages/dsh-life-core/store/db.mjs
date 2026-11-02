@@ -54,7 +54,7 @@ const RECEIPT_TABLE = [
  *
  * kind 'remind' - a moment the agent picked to come back to something; if it comes due while
  * the agent sleeps it waits for it, like a message.
- * kind 'alarm' - a moment the agent picked that is allowed to WAKE its:
+ * kind 'alarm' - a moment the agent picked that is allowed to wake the agent:
  * "如果闹钟的时间在助手睡觉的时候，那么就能将助手唤醒".
  */
 const REMINDER_TABLE = [
@@ -80,9 +80,9 @@ const SCHEMA = [
     'identity_id TEXT NOT NULL,' +
     'schema_version INTEGER NOT NULL,' +
     'created_at TEXT NOT NULL,' +
- // 助手自己的节奏状态（schema v15，D3）：随机数状态 + 下一次该醒的时刻。
- // 实测的毛病：rng 用固定种子、每个进程重新播种、状态从不落盘，
- // 于是重启之后助手的"随机间隔"从头重复（68.78 / 44.82 分钟反复出现）。
+ // 助手自己的节奏状态：随机数状态 + 下一次该醒的时刻。
+ // 要避免的毛病：rng 用固定种子、每个进程重新播种、状态从不落盘，
+ // 于是重启之后助手的"随机间隔"从头重复（同一对间隔反复出现）。
     "scheduler_json TEXT NOT NULL DEFAULT '{}')",
   'CREATE TABLE IF NOT EXISTS life_events(' +
     'seq INTEGER PRIMARY KEY AUTOINCREMENT,' +
@@ -102,9 +102,9 @@ const SCHEMA = [
     'end_seq INTEGER NOT NULL,' +
     'importance INTEGER NOT NULL DEFAULT 3 CHECK(importance BETWEEN 1 AND 5),' +
     "links_json TEXT NOT NULL DEFAULT '[]'," +
- // Addressable fields (schema v3). Measured need: a package used to carry only its
+ // Addressable fields (schema v3). The need: a package used to carry only its
  // text and when it was written, so "which one" could not be answered - two lines
- // about the same subject scored within 0.03 of each other. These three columns are
+ // about the same subject looked equally close. These three columns are
  // what a query can actually point at: when it happened, what it was about, and
  // which occurrence of that subject it was.
     'occurred_at TEXT,' +
@@ -214,8 +214,8 @@ const SCHEMA = [
     'seen_at TEXT)',
   'CREATE INDEX IF NOT EXISTS life_attention_pending ON life_attention(status, at)',
   'CREATE INDEX IF NOT EXISTS life_attention_disposition ON life_attention(disposition, status)',
- // The agent's plugin table. Capabilities belong to
- // its, not to the runtime the agent happens to live in, so the table sits in its store.
+ // The agent's plugin table. Capabilities belong to the
+ // agent, not to the runtime it happens to live in, so the table sits in the agent's store.
  // Three facts stay apart: declared (the manifest), granted (the owner's allowlist at
  // enable time), active (derived: enabled AND granted). Install never grants anything.
   'CREATE TABLE IF NOT EXISTS life_plugins(' +
@@ -314,16 +314,16 @@ const SCHEMA = [
     "BEGIN SELECT RAISE(ABORT, 'life_inbound_receipts_is_append_only'); END",
   'CREATE TRIGGER IF NOT EXISTS life_inbound_receipts_no_delete BEFORE DELETE ON life_inbound_receipts ' +
     "BEGIN SELECT RAISE(ABORT, 'life_inbound_receipts_is_append_only'); END",
- // What the agent could see the last time the host told its.
+ // What the agent could see the last time the host told it.
  // A row here is not a grant: the grant is the owner's config file. This row is the
  // memory of the previous view, so a changed view can be *announced* instead of
- // silently rearranging the world under its.
+ // silently rearranging the world under it.
   'CREATE TABLE IF NOT EXISTS life_room(' +
     'singleton INTEGER PRIMARY KEY CHECK(singleton=1),' +
     'view_json TEXT NOT NULL,' +
     'updated_at TEXT NOT NULL)',
- // The agent's daily output counter (schema v14, = W4; an earlier design: 100M tokens a day, no
- // carry-over, reset at it local midnight). One row per day, not a running total, because
+ // The agent's daily output counter (schema v14; an earlier design used a fixed daily
+ // cap with no carry-over, reset at its local midnight). One row per day, not a running total, because
  // "today" has to be answerable after a crash: the row IS the persistence, and a new day is
  // a new row rather than a subtracted value.
   'CREATE TABLE IF NOT EXISTS life_budget(' +
@@ -350,7 +350,7 @@ const SCHEMA = [
   'CREATE INDEX IF NOT EXISTS life_package_terms_term ON life_package_terms(term)',
   'CREATE INDEX IF NOT EXISTS life_activation_package ON life_activation(package_id, recalled_at)',
   'CREATE INDEX IF NOT EXISTS life_prefs_active ON life_prefs(status, id)',
- // The agent's own reminders (schema v15, D3; "同意"). A row is a moment the agent
+ // The agent's own reminders. A row is a moment the agent
   // 选了回到某件事上："过十分钟再问你" / "19 点记着吃饭" / "睡前提醒关灯"。
  // It is not a task and not an arrival: tasks are unfinished work, arrivals came from
  // outside, this one is the agent's. Status changes to fired/cancelled in place (like attention),
@@ -451,7 +451,7 @@ function widenReceiptActions(db) {
 
 /**
  * v16: a reminder may also be an alarm, i.e. a moment that is allowed
- * to wake its up instead of waiting for it. Same row shape, same limits; only the CHECK
+ * to wake the agent up instead of waiting for it. Same row shape, same limits; only the CHECK
  * on kind has to widen, and SQLite cannot do that in place. Rebuilt exactly like the
  * receipt table above: one transaction, every row copied, old table dropped last.
  *

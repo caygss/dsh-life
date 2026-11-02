@@ -1,7 +1,7 @@
 /**
  * Correction closure.
  *
- * The owner's model, stated plainly: recall already hands its a group of memories, the agent
+ * The owner's model, stated plainly: recall already hands it a group of memories, the agent
  * picks one, and picking the wrong sibling is not the interesting failure - 记错 is.
  * What has to work is the step after it: when the person says "不是那次，是上个月那天",
  * the correction has to *stick*. Three things make it stick, and all three happen in one

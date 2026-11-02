@@ -37,7 +37,7 @@ function minMaxNormalise(route) {
  * Fusion is a weighted sum of per-route scores, each min-max normalised inside the
  * candidate set.
  *
- * Two measured failures led here (, real embeddings):
+ * Two failures led here:
  * 1. Reciprocal rank fusion let a package that only appeared on the noisy keyword
  * route outrank the clear semantic winner, because with k=60 any second route
  * is worth far more than a first place on one route.
@@ -51,10 +51,10 @@ export const RECALL_MODES = Object.freeze(['semantic', 'fused']);
 /**
  * Retrieval mode.
  *
- * 'semantic' (default since ) ranks by cosine alone. Measured basis, 225
- * pre-registered queries: pure vector 165/175 @1, three-route fusion 167/175, fusion
- * plus addressable fields 169/175. The owner judged the 4-query difference not worth the
- * extra machinery for now, so the extra routes stay implemented and dormant.
+ * 'semantic' (the default) ranks by cosine alone. On an internal query set the three-route
+ * fusion and addressable fields scored only slightly better than pure vector, so the gain
+ * was judged not worth the extra machinery for now; the extra routes stay implemented and
+ * dormant.
  *
  * 'fused' keeps the keyword and time routes with ROUTE_WEIGHTS. Re-enable it when a
  * behaviour actually needs it (e.g. "which visit was this", "what happened that day"),

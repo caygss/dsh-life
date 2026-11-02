@@ -27,13 +27,13 @@ export const IMPLEMENTED_SURFACES = Object.freeze([
   'fs',
   'net',
   'secret',
- // （D1/D2）：宿主把「助手的记忆」这一层交出去的门。声明了它，宿主才把
+ // 宿主把「助手的记忆」这一层交出去的门。声明了它，宿主才把
  // 记忆服务（读、写、修订、撤回）交给这个插件；没声明就只是拿不到，不会静默降级成空对象。
   'memory',
- // （D3）：宿主把「助手自己的时刻」交出去的门。声明了它，插件才能替助手定下
+ // 宿主把「助手自己的时刻」交出去的门。声明了它，插件才能替助手定下
  // "过十分钟再问你" / "19 点记着吃饭"；到点由助手的循环叫醒助手，不是插件自己开定时器。
   'schedule',
- // ：宿主把「画一张」交出去的门。声明了它，宿主才把生图服务交给插件——
+  // 宿主把「画一张」交出去的门。声明了它，宿主才把生图服务交给插件——
   // 那张图由外部服务画，key 在宿主这一侧，插件看不见。
   'image',
  // （号池）：宿主把「把一份账号文件交给生图号池」交出去的门。声明了它，宿主才把
@@ -44,9 +44,9 @@ export const IMPLEMENTED_SURFACES = Object.freeze([
 
 /** Decided, documented, not implemented. Ordered by the decision that reserved it. */
 export const RESERVED_SURFACES = Object.freeze([
-  'device', 
-  'display', 
-  'vm', 
+  'device',
+  'display',
+  'vm',
 ]);
 
 export const SURFACE_STATE = Object.freeze({
@@ -63,8 +63,8 @@ export const SURFACE_DOORS = Object.freeze({
   exec: 'may start a one-shot process inside the sandbox',
   fs: 'may read or write the host directories it was granted',
  // （联网）：这道门真的给出去的不是通用 fetch，是宿主自己的 Search / Fetch
- // 两个动作（出口只有 api.deepseek.com）；allowlist 是代码里的两条路径，不是一张名单。
-  net: 'may search the web and open a page through the host allowlist (api.deepseek.com search/fetch)',
+ // 两个动作；出口和 allowlist 都在宿主那一侧，插件只能照它做。
+  net: "may search the web and open a page through the host's own search/fetch allowlist",
   secret: 'may use a named credential inside the plugin only',
   memory: "may read and write the agent's own memories (note / recall / unpack / revise / withdraw)",
   schedule: "may set, list and cancel its own moments (a reminder that its own loop fires)",

@@ -1,11 +1,11 @@
 /**
  * The plugin loader.
  *
- * Until now a plugin was a manifest plus three rows in its table: installed, granted,
+ * Until now a plugin was a manifest plus three rows in the agent's table: installed, granted,
  * active. Nothing ever imported it, so "installing a plugin" proved the bookkeeping and
  * not the ability. This module closes that gap: it reads the declaration, imports the
- * factory, hands it a context built from it table, and collects the tool implementations
- * the factory registers - which is what buildToolTable then turns into it tool table.
+ * factory, hands it a context built from that table, and collects the tool implementations
+ * the factory registers - which is what buildToolTable then turns into the agent's tool table.
  *
  * The order is deliberately the same one the registry enforces, because the loader must
  * not become a second, weaker door:
@@ -173,7 +173,7 @@ function buildContext(plugin, manifest, deps) {
     return subscribe;
   };
 
- // ---- 宿主服务（D1/D2 记忆，D3 助手自己的时刻）--------------------------------
+ // ---- 宿主服务（记忆、助手自己的时刻）----------------------------------------
  // 门槛永远是**声明**：只有 manifest 里声明了对应 surface 的能力，宿主才把那一层服务
  // 交出去。声明了却没给 = 拒绝加载（不能静默少一个门）；没声明 = 就是没有，不报错。
  // 一门一行，加门的时候不加分支——这样"谁能碰到助手的库"永远是一张能读完的表。
@@ -183,7 +183,7 @@ function buildContext(plugin, manifest, deps) {
  // "把助手的时刻定下来"，而 surface 名字（schedule）只是那道门的编号。
     { surface: 'schedule', name: 'reminders', missing: LOADER_ERRORS.scheduleServiceUnavailable },
  // 联网：门的名字就是 net，插件拿到的是 context.net——
- // 不是 fetch，是「查一次」「打开一个」，出口只有 api.deepseek.com 的两个接口。
+ // 不是通用 fetch，是「查一次」「打开一个」两个动作；出口与名单由宿主决定，插件只能照它做。
     { surface: 'net', name: 'net', missing: LOADER_ERRORS.netServiceUnavailable },
  // 助手的工作间：门的编号是 surface:exec，交到插件手里时叫 hands——
  // 插件里写 context.hands.run({command}) 读起来就是「用手跑一条命令」。拿到的不是
@@ -253,8 +253,8 @@ export async function loadPlugin(store, input) {
   const services = options.services === null || typeof options.services !== 'object' || Array.isArray(options.services)
     ? {}
     : options.services;
- // 依赖：装了原生生图插件才配号池那两只手。不满足就不加载——
- // 不是报错、不是静默降级，是"这一份能力压根不出现"。分发出去的 life 没有那条链路，
+ // 依赖：装了原生生图插件、且宿主交出号池服务，才配号池那两只手。不满足就不加载——
+ // 不是报错、不是静默降级，是"这一份能力压根不出现"：没有那条链路的宿主里，
  // 也就不该出现"传号池""查号池"这样的动作。
   const unmet = unmetRequirements(manifest, store, services);
   if (unmet.missingPlugins.length > 0 || unmet.missingServices.length > 0) {

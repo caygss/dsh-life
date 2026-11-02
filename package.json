@@ -7,10 +7,4 @@
   "engines": {
     "node": ">=24.22.1 <25"
   },
-  "workspaces": [
-    "packages/*"
-  ],
-  "scripts": {
-    "test": "node --test \"test/**/*.test.mjs\""
-  }
 }

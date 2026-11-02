@@ -1,10 +1,9 @@
 /**
- * Relative-time cue parsing (B: make remembered time addressable).
+ * Relative-time cue parsing: make remembered time addressable.
  *
- * Measured problem (200-query evaluation): the time route scored every
- * candidate against the *current* time, so saying "四十天前" could not express a
- * remembered time. Opening the time route changed the rank of the correct package in
- * 0 of 175 queries.
+ * The problem: the time route scored every candidate against the *current* time,
+ * so saying "四十天前" could not express a remembered time, and opening the route
+ * did not by itself move the correct package to the top.
  *
  * The fix is not a better weight: the query has to be read. This module turns an
  * explicit relative-time phrase into (a) a target instant and (b) the phrase's own
